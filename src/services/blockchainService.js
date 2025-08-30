@@ -174,7 +174,15 @@ class BlockchainService {
     try {
       if (this.contract) {
         // Modo blockchain real
+        console.log(`🔍 Buscando validación en blockchain para: ${contentHash}`);
         const validation = await this.contract.getValidation(contentHash);
+        
+        // Verificar si hay datos válidos
+        if (!validation || validation.length === 0) {
+          console.log('⚠️  No se encontró validación en blockchain, usando modo simulado');
+          return this.getSimulatedValidation(contentHash);
+        }
+        
         return {
           contentHash,
           finalScore: validation.finalScore.toString(),
@@ -192,10 +200,21 @@ class BlockchainService {
         };
       } else {
         // Modo simulado - generar datos mock consistentes
+        console.log('📝 Usando modo simulado para validación');
         return this.getSimulatedValidation(contentHash);
       }
     } catch (error) {
-      console.error('Error obteniendo validación:', error);
+      console.error('Error obteniendo validación:', error.shortMessage || error.message);
+      
+      // Casos específicos de error
+      if (error.code === 'BAD_DATA' || error.message.includes('could not decode')) {
+        console.log('🔄 Datos de contrato vacíos - Fallback a modo simulado');
+      } else if (error.code === 'NETWORK_ERROR') {
+        console.log('🔄 Error de red - Fallback a modo simulado');
+      } else {
+        console.log('🔄 Error general - Fallback a modo simulado');
+      }
+      
       // Fallback a modo simulado
       return this.getSimulatedValidation(contentHash);
     }
@@ -225,7 +244,7 @@ class BlockchainService {
         confidence: ((hash + i) % 25) + 75
       })),
       evidenceHash: `Qm${contentHash.slice(2, 46)}`,
-      createdAt: new Date(Date.now() - (hash % 86400000)).toISOString(),
+      createdAt: new Date(Date.now() - Math.abs(hash % 86400000)).toISOString(),
       breakdown: {
         fake_news_score: Math.max(0, 100 - score),
         deepfake_score: (hash % 20),

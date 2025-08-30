@@ -315,6 +315,28 @@ app.get('/api/blockchain/balance', async (req, res) => {
   }
 });
 
+// Endpoint para obtener tareas/validaciones pendientes
+app.get('/api/tasks', async (req, res) => {
+  try {
+    const databaseService = require('./services/databaseService');
+    const tasks = await databaseService.getTasks();
+    
+    res.json({
+      success: true,
+      tasks: tasks || [],
+      count: tasks ? tasks.length : 0,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error obteniendo tareas:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error obteniendo tareas',
+      message: error.message
+    });
+  }
+});
+
 // Crear endpoint de debug para proxy
 createProxyTestEndpoint(app);
 

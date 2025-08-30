@@ -226,6 +226,28 @@ class DatabaseService {
       truthboardArticles: this.data.truthboard_articles.length
     };
   }
+
+  async getTasks() {
+    if (!this.data) await this.initialize();
+    
+    // Retornar noticias pendientes de validación como tareas
+    const pendingNews = this.data.news.filter(news => 
+      news.status === 'pending' || !news.status
+    );
+    
+    return pendingNews.map(news => ({
+      id: news.id,
+      type: 'validation',
+      title: news.title,
+      content: news.content,
+      url: news.url,
+      contentHash: news.contentHash,
+      priority: news.priority || 'medium',
+      status: news.status || 'pending',
+      createdAt: news.timestamp,
+      category: news.category
+    }));
+  }
 }
 
 module.exports = new DatabaseService();
