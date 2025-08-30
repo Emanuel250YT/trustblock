@@ -3,25 +3,25 @@ const crypto = require('crypto');
 // const { create } = require('ipfs-http-client'); // Temporalmente deshabilitado
 
 class ValidationService {
-    constructor() {
-        this.ipfsClient = null;
-        this.aiServices = {
-            openai: process.env.OPENAI_API_KEY,
-            huggingface: process.env.HUGGINGFACE_API_KEY
-        };
-        // this.initIPFS(); // Temporalmente deshabilitado
-    }
+  constructor() {
+    this.ipfsClient = null;
+    this.aiServices = {
+      openai: process.env.OPENAI_API_KEY,
+      huggingface: process.env.HUGGINGFACE_API_KEY
+    };
+    // this.initIPFS(); // Temporalmente deshabilitado
+  }
 
-    async initIPFS() {
-        try {
-            // this.ipfsClient = create({
-            //     url: process.env.IPFS_NODE_URL || 'http://localhost:5001'
-            // });
-            console.log('✅ IPFS client inicializado (mock)');
-        } catch (error) {
-            console.error('❌ Error inicializando IPFS:', error);
-        }
-    }  /**
+  async initIPFS() {
+    try {
+      // this.ipfsClient = create({
+      //     url: process.env.IPFS_NODE_URL || 'http://localhost:5001'
+      // });
+      console.log('✅ IPFS client inicializado (mock)');
+    } catch (error) {
+      console.error('❌ Error inicializando IPFS:', error);
+    }
+  }  /**
    * Procesa contenido de noticia (URL o texto)
    */
   async processContent({ url, content, title }) {
@@ -219,44 +219,44 @@ class ValidationService {
     return crypto.createHash('sha256').update(content).digest('hex');
   }
 
-    /**
-     * Sube contenido a IPFS
-     */
-    async uploadToIPFS(content) {
-        try {
-            // Mock implementation - en producción usar IPFS real
-            const contentString = JSON.stringify(content);
-            const hash = crypto.createHash('sha256').update(contentString).digest('hex');
-            
-            console.log(`📁 Contenido subido a IPFS (mock): ${hash}`);
-            return hash;
-        } catch (error) {
-            console.error('Error subiendo a IPFS:', error);
-            // Fallback: usar hash local
-            return this.generateContentHash(JSON.stringify(content));
-        }
-    }
+  /**
+   * Sube contenido a IPFS
+   */
+  async uploadToIPFS(content) {
+    try {
+      // Mock implementation - en producción usar IPFS real
+      const contentString = JSON.stringify(content);
+      const hash = crypto.createHash('sha256').update(contentString).digest('hex');
 
-    /**
-     * Obtiene contenido de IPFS
-     */
-    async getFromIPFS(hash) {
-        try {
-            // Mock implementation - en producción obtener de IPFS real
-            console.log(`📁 Obteniendo contenido de IPFS (mock): ${hash}`);
-            
-            // Retornar contenido mock basado en hash
-            return {
-                title: `Contenido ${hash.substring(0, 8)}`,
-                content: 'Contenido de ejemplo almacenado en IPFS',
-                timestamp: new Date().toISOString(),
-                source: 'mock'
-            };
-        } catch (error) {
-            console.error('Error obteniendo de IPFS:', error);
-            throw error;
-        }
-    }  /**
+      console.log(`📁 Contenido subido a IPFS (mock): ${hash}`);
+      return hash;
+    } catch (error) {
+      console.error('Error subiendo a IPFS:', error);
+      // Fallback: usar hash local
+      return this.generateContentHash(JSON.stringify(content));
+    }
+  }
+
+  /**
+   * Obtiene contenido de IPFS
+   */
+  async getFromIPFS(hash) {
+    try {
+      // Mock implementation - en producción obtener de IPFS real
+      console.log(`📁 Obteniendo contenido de IPFS (mock): ${hash}`);
+
+      // Retornar contenido mock basado en hash
+      return {
+        title: `Contenido ${hash.substring(0, 8)}`,
+        content: 'Contenido de ejemplo almacenado en IPFS',
+        timestamp: new Date().toISOString(),
+        source: 'mock'
+      };
+    } catch (error) {
+      console.error('Error obteniendo de IPFS:', error);
+      throw error;
+    }
+  }  /**
    * Verifica firma de validador
    */
   async verifyValidatorSignature(walletAddress, signature, contentHash) {
