@@ -1,0 +1,10 @@
+{
+  "network": "zama_sepolia",
+  "deployer": "0x121A783E85E8d8775557A1ba29a35dA0fE7CE7b2",
+  "contracts": {
+    "TruthBoardConfidential": "0x345E4DB2fa4E615842D51DAf6D2ae4a831220876",
+    "FHEVM_Address": "0x000000000000000000000000000000000000005d"
+  },
+  "timestamp": "2025-08-30T14:34:37.333Z",
+  "block": 9096983
+}

@@ -6,13 +6,13 @@ async function main() {
   const [deployer] = await hre.ethers.getSigners();
   console.log("Deploying contracts with the account:", deployer.address);
 
-  // Mock FHEVM address (en testnet/mainnet usar la dirección real)
-  const MOCK_FHEVM_ADDRESS = "0x0000000000000000000000000000000000000001";
+  // FHEVM address for Sepolia testnet (Zama's FHE precompile)
+  const FHEVM_ADDRESS = process.env.ZAMA_FHEVM_ADDRESS || "0x000000000000000000000000000000000000005d";
 
   // Desplegar TruthBoardConfidential
   console.log("\n📋 Desplegando TruthBoardConfidential...");
   const TruthBoardConfidential = await hre.ethers.getContractFactory("TruthBoardConfidential");
-  const truthBoardConfidential = await TruthBoardConfidential.deploy(MOCK_FHEVM_ADDRESS);
+  const truthBoardConfidential = await TruthBoardConfidential.deploy(FHEVM_ADDRESS);
 
   await truthBoardConfidential.waitForDeployment();
   const confidentialAddress = await truthBoardConfidential.getAddress();
@@ -30,7 +30,7 @@ async function main() {
     deployer: deployer.address,
     contracts: {
       TruthBoardConfidential: confidentialAddress,
-      FHEVM_Address: MOCK_FHEVM_ADDRESS
+      FHEVM_Address: FHEVM_ADDRESS
     },
     timestamp: new Date().toISOString(),
     block: await hre.ethers.provider.getBlockNumber()

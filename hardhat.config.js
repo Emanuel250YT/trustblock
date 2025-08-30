@@ -89,6 +89,14 @@ module.exports = {
       chainId: 80001,
       accounts: process.env.PRIVATE_KEY && process.env.PRIVATE_KEY.length >= 64 ? [process.env.PRIVATE_KEY.startsWith('0x') ? process.env.PRIVATE_KEY : '0x' + process.env.PRIVATE_KEY] : [],
       gasPrice: 20000000000
+    },
+    // Zama FHE Networks (using Sepolia for FHE testing)
+    zama_sepolia: {
+      url: "https://ethereum-sepolia-rpc.publicnode.com",
+      chainId: 11155111,
+      accounts: process.env.PRIVATE_KEY && process.env.PRIVATE_KEY.length >= 64 ? [process.env.PRIVATE_KEY.startsWith('0x') ? process.env.PRIVATE_KEY : '0x' + process.env.PRIVATE_KEY] : [],
+      gasPrice: 2000000000, // 2 gwei
+      gas: 8000000
     }
   },
   paths: {
