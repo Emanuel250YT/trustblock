@@ -11,6 +11,7 @@ const stakingRoutes = require('./routes/staking');
 const newsRoutes = require('./routes/news');
 const truthboardRoutes = require('./routes/truthboard');
 const filecoinRoutes = require('./routes/filecoin');
+const confidentialRoutes = require('./routes/confidential');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -49,7 +50,8 @@ app.get('/health', (req, res) => {
     services: {
       trueblock: 'Active - Decentralized news validation',
       truthboard: 'Active - Anonymous journalism with ZK on Citrea',
-      filecoin: 'Active - Permanent storage & retrieval'
+      filecoin: 'Active - Permanent storage & retrieval',
+      confidential: 'Active - FHE encrypted validation with Zama'
     }
   });
 });
@@ -61,6 +63,7 @@ app.use('/api/staking', stakingRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/truthboard', truthboardRoutes);
 app.use('/api/filecoin', filecoinRoutes);
+app.use('/api/confidential', confidentialRoutes);
 
 // Ruta de información general
 app.get('/api/info', (req, res) => {
@@ -102,6 +105,28 @@ app.get('/api/info', (req, res) => {
           donate: '/api/truthboard/donate',
           stats: '/api/truthboard/stats',
           citrea: '/api/truthboard/citrea/status'
+        }
+      },
+      confidential: {
+        name: 'TruthBoard Confidential API',
+        description: 'Validación confidencial con Fully Homomorphic Encryption de Zama',
+        blockchain: 'Zama Protocol',
+        features: [
+          'Validación completamente confidencial',
+          'Protección de identidad de validadores',
+          'Operaciones homomórficas en votos cifrados',
+          'Reputación cifrada preservando privacidad',
+          'Pruebas criptográficas sin revelar datos'
+        ],
+        endpoints: {
+          initialize: '/api/confidential/initialize',
+          register: '/api/confidential/register-validator',
+          validate: '/api/confidential/submit-validation',
+          aggregate: '/api/confidential/aggregate-validations',
+          reputation: '/api/confidential/update-reputation',
+          stats: '/api/confidential/validator-stats/:address',
+          info: '/api/confidential/service-info',
+          verify: '/api/confidential/verify-proof'
         }
       },
       filecoin: {
