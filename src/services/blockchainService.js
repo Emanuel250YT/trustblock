@@ -93,14 +93,50 @@ class BlockchainService {
   }
 
   /**
+   * Verifica si la wallet tiene fondos suficientes
+   */
+  async checkBalance(requiredAmount = 0) {
+    try {
+      if (!this.signer || !this.provider) {
+        return { sufficient: false, balance: '0', reason: 'No wallet connected' };
+      }
+      
+      const balance = await this.provider.getBalance(this.signer.address);
+      const balanceInEth = ethers.formatEther(balance);
+      const sufficient = balance >= ethers.parseEther(requiredAmount.toString());
+      
+      return {
+        sufficient,
+        balance: balanceInEth,
+        required: requiredAmount.toString(),
+        address: this.signer.address
+      };
+    } catch (error) {
+      console.error('Error verificando balance:', error);
+      return { sufficient: false, balance: '0', reason: error.message };
+    }
+  }
+
+  /**
    * Envía una noticia al smart contract para validación
    */
   async submitNews(contentHash) {
     try {
       if (this.contract && this.signer) {
+        // Verificar balance antes de enviar transacción
+        const balance = await this.provider.getBalance(this.signer.address);
+        console.log(`💰 Balance de wallet: ${ethers.formatEther(balance)} ETH`);
+        
+        if (balance === 0n) {
+          console.log('⚠️  Balance insuficiente, usando modo simulado');
+          throw new Error('INSUFFICIENT_FUNDS');
+        }
+        
         // Modo blockchain real
+        console.log(`📤 Enviando noticia al blockchain: ${contentHash}`);
         const tx = await this.contract.submitNews(contentHash);
-        await tx.wait();
+        const receipt = await tx.wait();
+        console.log(`✅ Noticia enviada exitosamente. TX: ${tx.hash}`);
         return tx.hash;
       } else {
         // Modo simulado
@@ -113,11 +149,20 @@ class BlockchainService {
         return simulatedTxHash;
       }
     } catch (error) {
-      console.error('Error enviando noticia:', error);
+      console.error('Error enviando noticia:', error.shortMessage || error.message);
       
-      // Fallback a modo simulado si falla blockchain
-      console.log('🔄 Fallback a modo simulado');
+      // Casos específicos de error
+      if (error.code === 'INSUFFICIENT_FUNDS' || error.message.includes('insufficient funds')) {
+        console.log('🔄 Fondos insuficientes - Fallback a modo simulado');
+      } else if (error.code === 'NETWORK_ERROR') {
+        console.log('🔄 Error de red - Fallback a modo simulado');
+      } else {
+        console.log('🔄 Error general - Fallback a modo simulado');
+      }
+      
+      // Fallback a modo simulado para cualquier error
       const simulatedTxHash = `0x${Math.random().toString(16).padStart(64, '0')}`;
+      await new Promise(resolve => setTimeout(resolve, 500));
       return simulatedTxHash;
     }
   }
@@ -196,12 +241,25 @@ class BlockchainService {
   async registerOracle(walletAddress, specialization, stakeAmount) {
     try {
       if (this.contract && this.signer) {
+        // Verificar balance antes de registrar
+        const balance = await this.provider.getBalance(this.signer.address);
+        const requiredAmount = ethers.parseEther(stakeAmount.toString());
+        
+        console.log(`💰 Balance: ${ethers.formatEther(balance)} ETH`);
+        console.log(`💎 Stake requerido: ${stakeAmount} ETH`);
+        
+        if (balance < requiredAmount) {
+          console.log('⚠️  Balance insuficiente para stake, usando modo simulado');
+          throw new Error('INSUFFICIENT_FUNDS');
+        }
+        
         // Modo blockchain real
+        console.log(`🤖 Registrando oráculo en blockchain: ${walletAddress}`);
         const tx = await this.contract.registerOracle(specialization, {
-          value: ethers.parseEther(stakeAmount.toString())
+          value: requiredAmount
         });
-        await tx.wait();
-        console.log(`🤖 Oráculo registrado: ${walletAddress}, TX: ${tx.hash}`);
+        const receipt = await tx.wait();
+        console.log(`✅ Oráculo registrado exitosamente. TX: ${tx.hash}`);
         return tx.hash;
       } else {
         // Modo simulado
@@ -211,9 +269,18 @@ class BlockchainService {
         return simulatedTxHash;
       }
     } catch (error) {
-      console.error('Error registrando oráculo:', error);
+      console.error('Error registrando oráculo:', error.shortMessage || error.message);
+      
+      // Casos específicos de error
+      if (error.code === 'INSUFFICIENT_FUNDS' || error.message.includes('insufficient funds')) {
+        console.log('🔄 Fondos insuficientes - Fallback a modo simulado');
+      } else {
+        console.log('🔄 Error general - Fallback a modo simulado');
+      }
+      
       // Fallback a modo simulado
       const simulatedTxHash = `0x${Math.random().toString(16).padStart(64, '0')}`;
+      await new Promise(resolve => setTimeout(resolve, 500));
       return simulatedTxHash;
     }
   }
@@ -224,12 +291,25 @@ class BlockchainService {
   async registerCommunityValidator(walletAddress, category, stakeAmount) {
     try {
       if (this.contract && this.signer) {
+        // Verificar balance antes de registrar
+        const balance = await this.provider.getBalance(this.signer.address);
+        const requiredAmount = ethers.parseEther(stakeAmount.toString());
+        
+        console.log(`💰 Balance: ${ethers.formatEther(balance)} ETH`);
+        console.log(`💎 Stake requerido: ${stakeAmount} ETH`);
+        
+        if (balance < requiredAmount) {
+          console.log('⚠️  Balance insuficiente para stake, usando modo simulado');
+          throw new Error('INSUFFICIENT_FUNDS');
+        }
+        
         // Modo blockchain real
+        console.log(`👥 Registrando validador en blockchain: ${walletAddress}`);
         const tx = await this.contract.registerCommunityValidator(category, {
-          value: ethers.parseEther(stakeAmount.toString())
+          value: requiredAmount
         });
-        await tx.wait();
-        console.log(`👥 Validador registrado: ${walletAddress}, TX: ${tx.hash}`);
+        const receipt = await tx.wait();
+        console.log(`✅ Validador registrado exitosamente. TX: ${tx.hash}`);
         return tx.hash;
       } else {
         // Modo simulado
@@ -239,9 +319,18 @@ class BlockchainService {
         return simulatedTxHash;
       }
     } catch (error) {
-      console.error('Error registrando validador:', error);
+      console.error('Error registrando validador:', error.shortMessage || error.message);
+      
+      // Casos específicos de error
+      if (error.code === 'INSUFFICIENT_FUNDS' || error.message.includes('insufficient funds')) {
+        console.log('🔄 Fondos insuficientes - Fallback a modo simulado');
+      } else {
+        console.log('🔄 Error general - Fallback a modo simulado');
+      }
+      
       // Fallback a modo simulado
       const simulatedTxHash = `0x${Math.random().toString(16).padStart(64, '0')}`;
+      await new Promise(resolve => setTimeout(resolve, 500));
       return simulatedTxHash;
     }
   }

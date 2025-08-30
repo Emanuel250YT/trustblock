@@ -291,6 +291,30 @@ app.get('/api/info', (req, res) => {
   });
 });
 
+// Endpoint para verificar balance de wallet
+app.get('/api/blockchain/balance', async (req, res) => {
+  try {
+    const { BlockchainService } = require('./services/blockchainService');
+    const blockchainService = new BlockchainService();
+    
+    const balanceInfo = await blockchainService.checkBalance();
+    
+    res.json({
+      success: true,
+      balance: balanceInfo,
+      chainId: await blockchainService.getChainId(),
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error verificando balance:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error verificando balance',
+      message: error.message
+    });
+  }
+});
+
 // Crear endpoint de debug para proxy
 createProxyTestEndpoint(app);
 
