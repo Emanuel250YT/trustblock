@@ -53,7 +53,34 @@ if (trustProxy) {
 }
 
 // Middleware de seguridad
-app.use(helmet());
+app.use(helmet({
+  crossOriginEmbedderPolicy: false
+}));
+
+// CORS habilitado para TODOS los orígenes (provisional)
+app.use(cors({
+  origin: true, // Acepta cualquier origen
+  credentials: false,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: '*',
+  optionsSuccessStatus: 200
+}));
+
+// Middleware adicional para CORS universal - DEBE ir ANTES que otros middlewares
+app.use((req, res, next) => {
+  console.log(`🌐 CORS Request: ${req.method} ${req.path} from origin: ${req.headers.origin || 'no-origin'}`);
+  
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
+  res.header('Access-Control-Allow-Headers', '*');
+  res.header('Access-Control-Max-Age', '86400');
+  
+  if (req.method === 'OPTIONS') {
+    console.log(`✅ CORS Preflight handled for ${req.path}`);
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 // Middleware de debug para proxy (solo en desarrollo)
 if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROXY) {
@@ -61,27 +88,6 @@ if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROXY) {
 }
 app.use(validateProxyConfig);
 app.use(rateLimitInfo);
-
-// CORS habilitado para todos los orígenes (provisional)
-app.use(cors({
-  origin: '*',
-  credentials: false,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Version', 'User-Agent']
-}));
-
-// Middleware adicional para CORS universal
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-API-Version, User-Agent');
-  
-  if (req.method === 'OPTIONS') {
-    res.sendStatus(200);
-  } else {
-    next();
-  }
-});
 
 // Rate limiting general - usar el limiter apropiado según el entorno
 const mainLimiter = process.env.NODE_ENV === 'development' 
@@ -109,8 +115,28 @@ app.get('/health', (req, res) => {
       truthboard: 'Active - Anonymous journalism with ZK on Citrea',
       filecoin: 'Active - Permanent storage & retrieval',
       confidential: 'Active - FHE encrypted validation with Zama'
-    }
+    },
+    cors: 'ENABLED - All origins allowed'
   });
+});
+
+// CORS test endpoint
+app.get('/test-cors', (req, res) => {
+  res.json({
+    success: true,
+    message: 'CORS está funcionando correctamente',
+    origin: req.headers.origin || 'No origin header',
+    method: req.method,
+    headers: req.headers,
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
+  res.header('Access-Control-Allow-Headers', '*');
+  res.sendStatus(200);
 });
 
 // Test data deployment endpoint (only in development)
@@ -135,6 +161,26 @@ app.post('/deploy-test-data', async (req, res) => {
     console.error('Error deploying test data:', error);
     res.status(500).json({
       error: 'Failed to deploy test data',
+      message: error.message
+    });
+  }
+});
+
+// Get database stats endpoint
+app.get('/api/database/stats', async (req, res) => {
+  try {
+    const databaseService = require('./services/databaseService');
+    const stats = await databaseService.getStats();
+    
+    res.json({
+      success: true,
+      data: stats,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error getting database stats:', error);
+    res.status(500).json({
+      error: 'Failed to get database stats',
       message: error.message
     });
   }
