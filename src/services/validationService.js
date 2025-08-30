@@ -353,6 +353,136 @@ class ValidationService {
       throw error;
     }
   }
+
+  /**
+   * Obtiene historial de validaciones para un contenido
+   */
+  async getValidationHistory(contentHash) {
+    try {
+      // Simular historial de validaciones
+      return [
+        {
+          timestamp: new Date(Date.now() - 86400000).toISOString(),
+          type: 'ai_oracle',
+          validator: 'FakeNewsDetector AI',
+          vote: true,
+          confidence: 94,
+          evidence: 'QmEvidenceHash123'
+        },
+        {
+          timestamp: new Date(Date.now() - 43200000).toISOString(),
+          type: 'community',
+          validator: '0x1234...5678',
+          vote: true,
+          confidence: 87,
+          evidence: 'Manual fact-check verification'
+        },
+        {
+          timestamp: new Date(Date.now() - 21600000).toISOString(),
+          type: 'expert',
+          validator: '0x9876...4321',
+          vote: true,
+          confidence: 91,
+          evidence: 'Domain expert verification'
+        }
+      ];
+    } catch (error) {
+      console.error('Error obteniendo historial:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Verifica firma criptográfica
+   */
+  async verifySignature({ contentHash, walletAddress, vote, confidence, signature }) {
+    try {
+      // En producción, verificar con ethers.js
+      // const message = `TrueBlock Validation\nContent Hash: ${contentHash}\nValidator: ${walletAddress}\nVote: ${vote}\nTimestamp: ${Date.now()}`;
+      // const recoveredAddress = ethers.utils.verifyMessage(message, signature);
+      // return recoveredAddress.toLowerCase() === walletAddress.toLowerCase();
+      
+      // Por ahora, simulamos validación exitosa
+      return signature && signature.startsWith('0x') && signature.length === 132;
+    } catch (error) {
+      console.error('Error verificando firma:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Obtiene voto existente de un usuario
+   */
+  async getUserVote(contentHash, walletAddress) {
+    try {
+      // Simular verificación de voto existente
+      // En producción, consultar blockchain
+      return null; // null = no ha votado
+    } catch (error) {
+      console.error('Error obteniendo voto de usuario:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Registra un voto de validación
+   */
+  async submitVote({ contentHash, walletAddress, vote, confidence, evidence }) {
+    try {
+      // Simular registro de voto
+      const voteId = `vote_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+      const txHash = `0x${Math.random().toString(16).padStart(64, '0')}`;
+
+      console.log(`✅ Voto registrado: ${voteId}`);
+      console.log(`   Usuario: ${walletAddress}`);
+      console.log(`   Contenido: ${contentHash}`);
+      console.log(`   Voto: ${vote ? 'REAL' : 'FAKE'}`);
+      console.log(`   Confianza: ${confidence}%`);
+
+      return {
+        voteId,
+        txHash
+      };
+    } catch (error) {
+      console.error('Error registrando voto:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Sube contenido a IPFS
+   */
+  async uploadToIPFS(content) {
+    try {
+      // Simular hash IPFS
+      const hash = crypto.createHash('sha256').update(JSON.stringify(content)).digest('hex');
+      const ipfsHash = `Qm${hash.substring(0, 44)}`;
+      
+      console.log(`📤 Contenido subido a IPFS: ${ipfsHash}`);
+      return ipfsHash;
+    } catch (error) {
+      console.error('Error subiendo a IPFS:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene contenido de IPFS
+   */
+  async getFromIPFS(hash) {
+    try {
+      // Simular obtención de IPFS
+      return {
+        title: 'Título recuperado de IPFS',
+        summary: 'Resumen del contenido...',
+        timestamp: new Date().toISOString(),
+        source: 'example.com'
+      };
+    } catch (error) {
+      console.error('Error obteniendo de IPFS:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = new ValidationService();

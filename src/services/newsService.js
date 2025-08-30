@@ -525,6 +525,118 @@ class NewsService {
 
     return categories[source] || 'other';
   }
+
+  /**
+   * Obtiene contenido completo de una noticia por hash
+   */
+  async getNewsContent(contentHash) {
+    try {
+      // Simular obtención de IPFS
+      const mockContent = {
+        title: 'Título de la noticia recuperada',
+        fullContent: 'Contenido completo de la noticia con todos los detalles...',
+        originalUrl: 'https://example.com/news',
+        timestamp: new Date().toISOString(),
+        source: 'example.com',
+        category: 'technology',
+        language: 'es'
+      };
+
+      return mockContent;
+    } catch (error) {
+      console.error('Error obteniendo contenido:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Obtiene archivo de Filecoin si existe
+   */
+  async getFilecoinArchive(contentHash) {
+    try {
+      // Simular búsqueda en Filecoin
+      const random = Math.random();
+      if (random > 0.5) {
+        return {
+          cid: `bafybei${contentHash.substring(2, 10)}archive`,
+          dealId: `deal_${Date.now()}`,
+          retrievalUrl: `https://gateway.ipfs.io/ipfs/bafybei${contentHash.substring(2, 10)}archive`
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error obteniendo archivo Filecoin:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Procesa contenido para crear estructura estándar
+   */
+  async processContent({ url, content, title }) {
+    try {
+      let processedTitle = title;
+      let processedContent = content;
+      let source = '';
+
+      if (url) {
+        // Extraer dominio como fuente
+        const urlObj = new URL(url);
+        source = urlObj.hostname;
+        
+        // Si no hay título o contenido, simular extracción
+        if (!processedTitle) {
+          processedTitle = 'Título extraído de URL';
+        }
+        if (!processedContent) {
+          processedContent = 'Contenido extraído de la URL proporcionada...';
+        }
+      }
+
+      // Generar resumen
+      const summary = processedContent.length > 200 
+        ? processedContent.substring(0, 200) + '...'
+        : processedContent;
+
+      return {
+        title: processedTitle,
+        content: processedContent,
+        summary,
+        url: url || '',
+        source,
+        timestamp: new Date().toISOString(),
+        category: this.detectCategory(processedContent, processedTitle)
+      };
+    } catch (error) {
+      console.error('Error procesando contenido:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Detecta categoría del contenido
+   */
+  detectCategory(content, title) {
+    const text = (content + ' ' + title).toLowerCase();
+    
+    if (text.includes('bitcoin') || text.includes('crypto') || text.includes('blockchain')) {
+      return 'cryptocurrency';
+    }
+    if (text.includes('ai') || text.includes('artificial') || text.includes('technology')) {
+      return 'technology';
+    }
+    if (text.includes('climate') || text.includes('environment') || text.includes('carbon')) {
+      return 'environment';
+    }
+    if (text.includes('health') || text.includes('medical') || text.includes('disease')) {
+      return 'health';
+    }
+    if (text.includes('election') || text.includes('politics') || text.includes('government')) {
+      return 'politics';
+    }
+    
+    return 'general';
+  }
 }
 
 module.exports = new NewsService();

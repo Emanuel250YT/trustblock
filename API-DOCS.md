@@ -486,7 +486,16 @@ POST /api/news/search
     "totalResults": 45,
     "searchTime": "0.23s"
   },
-  "meta": {...}
+  "meta": {
+    "query": "elecciones 2024",
+    "filters": {...},
+    "page": 1,
+    "limit": 20,
+    "total": 45,
+    "totalPages": 3,
+    "hasNext": true,
+    "hasPrev": false
+  }
 }
 ```
 

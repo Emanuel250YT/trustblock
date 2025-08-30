@@ -452,6 +452,96 @@ class StakingService {
       throw error;
     }
   }
+
+  /**
+   * Calcula recompensa por voto
+   */
+  async calculateVoteReward(walletAddress, confidence) {
+    try {
+      const validator = this.validators.get(walletAddress);
+      if (!validator) {
+        return { amount: 0, token: 'ETH' };
+      }
+
+      // Recompensa base según categoría
+      const baseRewards = {
+        journalist: 0.005,
+        fact_checker: 0.008,
+        expert: 0.01,
+        community: 0.002
+      };
+
+      const baseReward = baseRewards[validator.category] || 0.001;
+      
+      // Bonus por confianza alta
+      const confidenceMultiplier = confidence >= 90 ? 1.5 : 
+                                  confidence >= 75 ? 1.2 : 1.0;
+
+      // Bonus por reputación
+      const reputationMultiplier = validator.reputation >= 800 ? 1.3 :
+                                  validator.reputation >= 600 ? 1.1 : 1.0;
+
+      const finalReward = baseReward * confidenceMultiplier * reputationMultiplier;
+
+      return {
+        amount: parseFloat(finalReward.toFixed(6)),
+        token: 'ETH'
+      };
+    } catch (error) {
+      console.error('Error calculando recompensa:', error);
+      return { amount: 0, token: 'ETH' };
+    }
+  }
+
+  /**
+   * Actualiza reputación de validador
+   */
+  async updateReputation(walletAddress, action, result = null) {
+    try {
+      const validator = this.validators.get(walletAddress);
+      if (!validator) {
+        return 500; // Reputación base para nuevos validadores
+      }
+
+      let reputationChange = 0;
+
+      switch (action) {
+        case 'vote_submitted':
+          reputationChange = 1; // Pequeño bonus por participar
+          break;
+        case 'correct_validation':
+          reputationChange = 10; // Bonus por validación correcta
+          break;
+        case 'incorrect_validation':
+          reputationChange = -5; // Penalización por validación incorrecta
+          break;
+        case 'slashing':
+          reputationChange = -50; // Penalización fuerte por comportamiento malicioso
+          break;
+        default:
+          reputationChange = 0;
+      }
+
+      const newReputation = Math.max(0, Math.min(1000, validator.reputation + reputationChange));
+      validator.reputation = newReputation;
+      
+      this.validators.set(walletAddress, validator);
+
+      // Registrar cambio en historial
+      this.addStakingHistory(walletAddress, {
+        timestamp: new Date().toISOString(),
+        type: 'reputation_update',
+        action,
+        reputationChange,
+        newReputation
+      });
+
+      return newReputation;
+    } catch (error) {
+      console.error('Error actualizando reputación:', error);
+      return 500;
+    }
+  }
 }
 
 module.exports = new StakingService();

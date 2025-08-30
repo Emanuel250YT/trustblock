@@ -62,12 +62,26 @@ if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROXY) {
 app.use(validateProxyConfig);
 app.use(rateLimitInfo);
 
+// CORS habilitado para todos los orígenes (provisional)
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? ['https://trueblock.app', 'https://truthboard.app']
-    : ['http://localhost:3000', 'http://localhost:3001'],
-  credentials: true
+  origin: '*',
+  credentials: false,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Version', 'User-Agent']
 }));
+
+// Middleware adicional para CORS universal
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, X-API-Version, User-Agent');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 
 // Rate limiting general - usar el limiter apropiado según el entorno
 const mainLimiter = process.env.NODE_ENV === 'development' 
@@ -97,6 +111,33 @@ app.get('/health', (req, res) => {
       confidential: 'Active - FHE encrypted validation with Zama'
     }
   });
+});
+
+// Test data deployment endpoint (only in development)
+app.post('/deploy-test-data', async (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({
+      error: 'Forbidden',
+      message: 'Test data deployment only available in development'
+    });
+  }
+
+  try {
+    const { deployTestData } = require('../scripts/deploy-test-data');
+    await deployTestData();
+    
+    res.json({
+      success: true,
+      message: 'Test data deployed successfully',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error deploying test data:', error);
+    res.status(500).json({
+      error: 'Failed to deploy test data',
+      message: error.message
+    });
+  }
 });
 
 // Rutas principales con rate limiters específicos

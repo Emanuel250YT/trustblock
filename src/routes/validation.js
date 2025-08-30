@@ -52,10 +52,10 @@ router.post('/submit', async (req, res) => {
 });
 
 /**
- * @route GET /api/validation/:contentHash
+ * @route GET /api/validation/status/:contentHash
  * @desc Obtiene el estado de validación de una noticia
  */
-router.get('/:contentHash', async (req, res) => {
+router.get('/status/:contentHash', async (req, res) => {
   try {
     const { contentHash } = req.params;
 
@@ -68,27 +68,41 @@ router.get('/:contentHash', async (req, res) => {
     // Obtener validación del smart contract
     const validation = await blockchainService.getValidation(contentHash);
 
-    // Obtener contenido de IPFS
-    const content = await validationService.getFromIPFS(contentHash);
+    if (!validation) {
+      return res.status(404).json({
+        error: 'Validación no encontrada',
+        message: 'No se encontró validación para el hash proporcionado'
+      });
+    }
+
+    // Determinar estado
+    let status = 'pending';
+    if (validation.isFinalized) {
+      if (validation.finalScore >= 75) status = 'validated';
+      else if (validation.finalScore <= 25) status = 'rejected';
+      else status = 'uncertain';
+    } else if (validation.oracleVotes.length > 0 || validation.validatorVotes.length > 0) {
+      status = 'validating';
+    }
 
     res.json({
       success: true,
       data: {
         contentHash,
-        validation: {
-          finalScore: validation.finalScore,
-          isFinalized: validation.isFinalized,
-          oracleVotes: validation.oracleVotes.length,
-          communityVotes: validation.validatorVotes.length,
-          evidenceHash: validation.evidenceHash
+        status,
+        score: validation.finalScore || 0,
+        validations: {
+          ai_oracles: validation.oracleVotes?.length || 0,
+          community_validators: validation.validatorVotes?.length || 0,
+          total_votes: (validation.oracleVotes?.length || 0) + (validation.validatorVotes?.length || 0)
         },
-        content: {
-          title: content.title,
-          summary: content.summary,
-          timestamp: content.timestamp,
-          source: content.source
+        breakdown: {
+          fake_news_score: validation.breakdown?.fake_news_score || 0,
+          deepfake_score: validation.breakdown?.deepfake_score || 0,
+          bias_score: validation.breakdown?.bias_score || 0,
+          credibility_score: validation.breakdown?.credibility_score || 0
         },
-        verdict: _getVerdict(validation.finalScore, validation.isFinalized)
+        timestamp: validation.createdAt || new Date().toISOString()
       }
     });
 
@@ -194,6 +208,97 @@ router.get('/recent/:limit?', async (req, res) => {
     console.error('Error al obtener validaciones recientes:', error);
     res.status(500).json({
       error: 'Error al obtener datos',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * @route POST /api/validation/vote
+ * @desc Registra un voto de validación de un usuario
+ */
+router.post('/vote', async (req, res) => {
+  try {
+    const {
+      contentHash,
+      walletAddress,
+      vote,
+      confidence,
+      evidence,
+      signature
+    } = req.body;
+
+    // Validar parámetros requeridos
+    if (!contentHash || !walletAddress || vote === undefined || !signature) {
+      return res.status(400).json({
+        error: 'Parámetros requeridos faltantes',
+        message: 'contentHash, walletAddress, vote y signature son requeridos'
+      });
+    }
+
+    // Validar confianza
+    if (confidence && (confidence < 1 || confidence > 100)) {
+      return res.status(400).json({
+        error: 'Confidence inválido',
+        message: 'Confidence debe estar entre 1 y 100'
+      });
+    }
+
+    // Verificar firma
+    const isValidSignature = await validationService.verifySignature({
+      contentHash,
+      walletAddress,
+      vote,
+      confidence,
+      signature
+    });
+
+    if (!isValidSignature) {
+      return res.status(401).json({
+        error: 'Firma inválida',
+        message: 'La firma criptográfica no es válida'
+      });
+    }
+
+    // Verificar si el usuario ya votó
+    const existingVote = await validationService.getUserVote(contentHash, walletAddress);
+    if (existingVote) {
+      return res.status(409).json({
+        error: 'Voto ya registrado',
+        message: 'Ya has votado en esta validación'
+      });
+    }
+
+    // Registrar voto
+    const voteResult = await validationService.submitVote({
+      contentHash,
+      walletAddress,
+      vote,
+      confidence: confidence || 75,
+      evidence
+    });
+
+    // Calcular recompensa
+    const reward = await stakingService.calculateVoteReward(walletAddress, confidence || 75);
+
+    // Actualizar reputación
+    const newReputation = await stakingService.updateReputation(walletAddress, 'vote_submitted');
+
+    res.json({
+      success: true,
+      message: 'Voto registrado exitosamente',
+      data: {
+        voteId: voteResult.voteId,
+        transactionHash: voteResult.txHash,
+        reward: `${reward.amount} ${reward.token}`,
+        newReputation: newReputation
+      }
+    });
+
+  } catch (error) {
+    console.error('Error al registrar voto:', error);
+    res.status(500).json({
+      error: 'Error al procesar voto',
       message: error.message
     });
   }
