@@ -37,16 +37,16 @@ module.exports = {
     citrea_devnet: {
       url: "https://rpc.devnet.citrea.xyz",
       chainId: 5115,
-      accounts: process.env.CITREA_PRIVATE_KEY && process.env.CITREA_PRIVATE_KEY.length === 66 ? [process.env.CITREA_PRIVATE_KEY] : [],
+      accounts: process.env.CITREA_PRIVATE_KEY && process.env.CITREA_PRIVATE_KEY.length >= 64 ? [process.env.CITREA_PRIVATE_KEY.startsWith('0x') ? process.env.CITREA_PRIVATE_KEY : '0x' + process.env.CITREA_PRIVATE_KEY] : [],
       gasPrice: 20000000000,
       gas: 6000000
     },
     citrea_testnet: {
       url: "https://rpc.testnet.citrea.xyz",
       chainId: 5115,
-      accounts: process.env.CITREA_PRIVATE_KEY && process.env.CITREA_PRIVATE_KEY.length === 66 ? [process.env.CITREA_PRIVATE_KEY] : [],
-      gasPrice: 20000000000,
-      gas: 6000000
+      accounts: process.env.CITREA_PRIVATE_KEY && process.env.CITREA_PRIVATE_KEY.length >= 64 ? [process.env.CITREA_PRIVATE_KEY.startsWith('0x') ? process.env.CITREA_PRIVATE_KEY : '0x' + process.env.CITREA_PRIVATE_KEY] : [],
+      gasPrice: 1000000000, // Reduced gas price (1 gwei)
+      gas: 3000000 // Reduced gas limit
     },
     citrea_mainnet: {
       url: process.env.CITREA_MAINNET_RPC_URL || "https://rpc.citrea.xyz",
@@ -73,11 +73,22 @@ module.exports = {
     // Original TrueBlock Networks
     base: {
       url: process.env.BASE_RPC_URL || "https://mainnet.base.org",
-      accounts: process.env.PRIVATE_KEY && process.env.PRIVATE_KEY.length === 66 ? [process.env.PRIVATE_KEY] : []
+      accounts: process.env.PRIVATE_KEY && process.env.PRIVATE_KEY.length >= 64 ? [process.env.PRIVATE_KEY.startsWith('0x') ? process.env.PRIVATE_KEY : '0x' + process.env.PRIVATE_KEY] : []
     },
     "base-sepolia": {
       url: "https://sepolia.base.org",
-      accounts: process.env.PRIVATE_KEY && process.env.PRIVATE_KEY.length === 66 ? [process.env.PRIVATE_KEY] : []
+      accounts: process.env.PRIVATE_KEY && process.env.PRIVATE_KEY.length >= 64 ? [process.env.PRIVATE_KEY.startsWith('0x') ? process.env.PRIVATE_KEY : '0x' + process.env.PRIVATE_KEY] : []
+    },
+    sepolia: {
+      url: "https://ethereum-sepolia-rpc.publicnode.com",
+      chainId: 11155111,
+      accounts: process.env.PRIVATE_KEY && process.env.PRIVATE_KEY.length >= 64 ? [process.env.PRIVATE_KEY.startsWith('0x') ? process.env.PRIVATE_KEY : '0x' + process.env.PRIVATE_KEY] : []
+    },
+    mumbai: {
+      url: "https://rpc-mumbai.maticvigil.com",
+      chainId: 80001,
+      accounts: process.env.PRIVATE_KEY && process.env.PRIVATE_KEY.length >= 64 ? [process.env.PRIVATE_KEY.startsWith('0x') ? process.env.PRIVATE_KEY : '0x' + process.env.PRIVATE_KEY] : [],
+      gasPrice: 20000000000
     }
   },
   paths: {

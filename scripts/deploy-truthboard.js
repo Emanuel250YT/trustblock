@@ -15,16 +15,8 @@ async function main() {
   console.log('\n📄 Deploying TruthBoard contract...');
   const TruthBoard = await ethers.getContractFactory('TruthBoard');
 
-  // Constructor parameters
-  const minStake = ethers.parseEther('0.01'); // 0.01 ETH minimum stake
-  const validationThreshold = 70; // 70% consensus required
-  const rewardPercentage = 10; // 10% reward for validators
-
-  const truthBoard = await TruthBoard.deploy(
-    minStake,
-    validationThreshold,
-    rewardPercentage
-  );
+  // TruthBoard constructor doesn't require parameters
+  const truthBoard = await TruthBoard.deploy();
 
   await truthBoard.waitForDeployment();
   const truthBoardAddress = await truthBoard.getAddress();
@@ -33,13 +25,11 @@ async function main() {
 
   // Verify deployment
   console.log('\n🔍 Verifying deployment...');
-  const minStakeFromContract = await truthBoard.minStake();
-  const thresholdFromContract = await truthBoard.validationThreshold();
-  const rewardFromContract = await truthBoard.rewardPercentage();
+  const owner = await truthBoard.owner();
+  const isPaused = await truthBoard.paused();
 
-  console.log('Min Stake:', ethers.formatEther(minStakeFromContract), 'ETH');
-  console.log('Validation Threshold:', thresholdFromContract.toString(), '%');
-  console.log('Reward Percentage:', rewardFromContract.toString(), '%');
+  console.log('Contract Owner:', owner);
+  console.log('Contract Paused:', isPaused);
 
   // Save deployment info
   const deploymentInfo = {
@@ -48,9 +38,8 @@ async function main() {
     deployer: deployer.address,
     timestamp: new Date().toISOString(),
     blockNumber: await deployer.provider.getBlockNumber(),
-    minStake: ethers.formatEther(minStakeFromContract),
-    validationThreshold: thresholdFromContract.toString(),
-    rewardPercentage: rewardFromContract.toString()
+    owner: owner,
+    paused: isPaused
   };
 
   console.log('\n📋 Deployment Summary:');
