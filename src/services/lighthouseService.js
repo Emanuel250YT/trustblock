@@ -58,6 +58,49 @@ class LighthouseService {
     }
   }
 
+  async uploadValidationEvidence(evidenceData, metadata = {}) {
+    try {
+      console.log('🔍 Subiendo evidencia de validación a Lighthouse...');
+
+      const evidencePackage = {
+        evidence: evidenceData,
+        metadata: {
+          type: 'validation_evidence',
+          newsId: metadata.newsId,
+          validatorAddress: metadata.validatorAddress,
+          timestamp: new Date().toISOString(),
+          validationType: metadata.validationType || 'community',
+          ...metadata
+        },
+        version: '1.0'
+      };
+
+      const tempFile = await this._createTempFile(
+        JSON.stringify(evidencePackage, null, 2),
+        `evidence_${metadata.newsId || Date.now()}.json`
+      );
+
+      const uploadResponse = await lighthouse.upload(tempFile, this.apiKey);
+      fs.unlinkSync(tempFile);
+
+      const result = {
+        hash: uploadResponse.data.Hash,
+        name: uploadResponse.data.Name,
+        size: uploadResponse.data.Size,
+        gateway_url: `${this.gatewayUrl}/${uploadResponse.data.Hash}`,
+        lighthouse_url: `https://files.lighthouse.storage/viewFile/${uploadResponse.data.Hash}`,
+        metadata: evidencePackage.metadata
+      };
+
+      console.log('✅ Evidencia subida exitosamente:', result.hash);
+      return result;
+
+    } catch (error) {
+      console.error('❌ Error subiendo evidencia:', error);
+      throw new Error(`Error en upload de evidencia: ${error.message}`);
+    }
+  }
+
   async uploadText(text, filename = null) {
     try {
       const tempFile = await this._createTempFile(
