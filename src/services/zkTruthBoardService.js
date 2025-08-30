@@ -1,5 +1,6 @@
 const { ethers } = require('ethers');
 const crypto = require('crypto');
+const filecoinStorageService = require('./filecoinStorageService');
 
 /**
  * Servicio para manejar operaciones ZK y anónimas en TruthBoard
@@ -28,6 +29,7 @@ class ZKTruthBoardService {
       }
 
       console.log('✅ ZK TruthBoard service inicializado en Citrea');
+      console.log('📁 Filecoin storage integration enabled');
       console.log(`🔗 Chain ID: ${this.citreaConfig.chainId}`);
     } catch (error) {
       console.error('❌ Error inicializando ZK TruthBoard service:', error);
@@ -59,7 +61,7 @@ class ZKTruthBoardService {
   }
 
   /**
-   * Publica noticia anónima
+   * Publica noticia anónima con archivado automático en Filecoin
    */
   async publishAnonymousNews(newsData) {
     try {
@@ -90,24 +92,20 @@ class ZKTruthBoardService {
           '0x' + zkIdentityProof
         );
         await tx.wait();
-
-        return {
-          success: true,
-          contentHash,
-          zkProofHash,
-          ipfsHash,
-          transactionHash: tx.hash
-        };
       }
 
-      // Mock response si no hay contrato
-      return {
+      // Preparar para potencial archivado en Filecoin
+      const publishResult = {
         success: true,
         contentHash,
         zkProofHash,
         ipfsHash,
-        transactionHash: '0x' + crypto.randomBytes(32).toString('hex')
+        transactionHash: this.contract ? tx.hash : '0x' + crypto.randomBytes(32).toString('hex'),
+        filecoinReady: true,
+        archiveEligible: false // Se determinará después de validación
       };
+
+      return publishResult;
 
     } catch (error) {
       console.error('Error publicando noticia anónima:', error);
@@ -187,7 +185,7 @@ class ZKTruthBoardService {
   }
 
   /**
-   * Valida noticia de forma anónima
+   * Valida noticia de forma anónima con archivado automático de evidencia
    */
   async validateNewsAnonymously(validationData) {
     try {
@@ -200,6 +198,30 @@ class ZKTruthBoardService {
         validatorCommitment,
         timestamp: Date.now()
       });
+
+      console.log(`🔍 Validación anónima: Score ${vote} para ${newsHash.substring(0, 10)}...`);
+
+      const validationResult = {
+        success: true,
+        newsHash,
+        vote,
+        validatorCommitment,
+        zkProof: '0x' + zkValidationProof,
+        timestamp: new Date().toISOString()
+      };
+
+      // Auto-archivar evidencia en Filecoin si el score es alto
+      if (vote >= 75) {
+        try {
+          await this.autoArchiveValidationEvidence(newsHash, vote, [validatorCommitment]);
+          validationResult.filecoinArchived = true;
+        } catch (error) {
+          console.error('Error archivando evidencia en Filecoin:', error);
+          validationResult.filecoinArchived = false;
+        }
+      }
+
+      return validationResult;
 
       console.log(`🔍 Validación anónima: Score ${vote} para ${newsHash.substring(0, 10)}...`);
 
@@ -362,6 +384,104 @@ class ZKTruthBoardService {
     } catch (error) {
       console.error('Error obteniendo estado de Citrea:', error);
       return { connected: false, error: error.message };
+    }
+  }
+
+  /**
+   * Auto-archiva evidencia de validación en Filecoin
+   */
+  async autoArchiveValidationEvidence(newsHash, validationScore, validators) {
+    try {
+      console.log(`📚 Auto-archivando evidencia para: ${newsHash.substring(0, 10)}...`);
+
+      return await filecoinStorageService.storeValidationEvidence({
+        newsHash,
+        evidenceFiles: [], // Se podrían agregar archivos de evidencia específicos
+        validationScore,
+        validators
+      });
+    } catch (error) {
+      console.error('Error en auto-archivado:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Archiva noticia validada en Filecoin si cumple criterios
+   */
+  async archiveValidatedNewsInFilecoin(newsData) {
+    try {
+      const { contentHash, title, content, validationScore, validators } = newsData;
+
+      if (validationScore < 75) {
+        console.log(`📋 Noticia ${contentHash.substring(0, 10)}... no cumple criterios para Filecoin (score: ${validationScore})`);
+        return { archived: false, reason: 'Score insuficiente' };
+      }
+
+      console.log(`📚 Archivando noticia validada en Filecoin: ${contentHash.substring(0, 10)}...`);
+
+      return await filecoinStorageService.archiveValidatedNews({
+        contentHash,
+        title,
+        content,
+        validationScore,
+        validators
+      });
+    } catch (error) {
+      console.error('Error archivando en Filecoin:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Crea snapshot público con datos de TruthBoard
+   */
+  async createTruthBoardSnapshot() {
+    try {
+      const stats = await this.getPlatformStats();
+      const blockNumber = await this.provider.getBlockNumber();
+
+      // Generar merkle root mock basado en estadísticas
+      const merkleRoot = '0x' + crypto.createHash('sha256')
+        .update(JSON.stringify(stats) + blockNumber.toString())
+        .digest('hex');
+
+      return await filecoinStorageService.createPublicSnapshot({
+        blockNumber,
+        merkleRoot,
+        statistics: stats
+      });
+    } catch (error) {
+      console.error('Error creando snapshot:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene estadísticas combinadas incluyendo Filecoin
+   */
+  async getEnhancedPlatformStats() {
+    try {
+      const basicStats = await this.getPlatformStats();
+      const filecoinStats = await filecoinStorageService.getStorageStatistics();
+
+      return {
+        ...basicStats,
+        filecoinStorage: {
+          totalArchived: filecoinStats.totalDealsCreated,
+          dataStored: filecoinStats.totalDataStored,
+          storageReliability: filecoinStats.storageReliability,
+          retrievalSuccessRate: filecoinStats.retrievalSuccessRate
+        },
+        permanentArchive: {
+          newsArchived: filecoinStats.storageByType.news_content || 0,
+          evidenceStored: filecoinStats.storageByType.validation_evidence || 0,
+          publicSnapshots: filecoinStats.storageByType.public_snapshots || 0
+        }
+      };
+    } catch (error) {
+      console.error('Error obteniendo estadísticas mejoradas:', error);
+      throw error;
     }
   }
 }

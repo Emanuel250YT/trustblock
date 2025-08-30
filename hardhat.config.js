@@ -42,6 +42,21 @@ module.exports = {
       gasPrice: 20000000000,
       gas: 6000000
     },
+    // Filecoin Virtual Machine Networks
+    filecoin_mainnet: {
+      url: process.env.FILECOIN_RPC_URL || "https://api.node.glif.io/rpc/v1",
+      chainId: 314,
+      accounts: process.env.FILECOIN_PRIVATE_KEY && process.env.FILECOIN_PRIVATE_KEY.length === 66 ? [process.env.FILECOIN_PRIVATE_KEY] : [],
+      gasPrice: 200000000000, // 200 Gwei
+      gas: 10000000
+    },
+    filecoin_testnet: {
+      url: "https://api.calibration.node.glif.io/rpc/v1",
+      chainId: 314159,
+      accounts: process.env.FILECOIN_PRIVATE_KEY && process.env.FILECOIN_PRIVATE_KEY.length === 66 ? [process.env.FILECOIN_PRIVATE_KEY] : [],
+      gasPrice: 200000000000,
+      gas: 10000000
+    },
     // Original TrueBlock Networks
     base: {
       url: process.env.BASE_RPC_URL || "https://mainnet.base.org",

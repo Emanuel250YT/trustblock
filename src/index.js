@@ -10,6 +10,7 @@ const oracleRoutes = require('./routes/oracle');
 const stakingRoutes = require('./routes/staking');
 const newsRoutes = require('./routes/news');
 const truthboardRoutes = require('./routes/truthboard');
+const filecoinRoutes = require('./routes/filecoin');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -47,7 +48,8 @@ app.get('/health', (req, res) => {
     version: '1.0.0',
     services: {
       trueblock: 'Active - Decentralized news validation',
-      truthboard: 'Active - Anonymous journalism with ZK on Citrea'
+      truthboard: 'Active - Anonymous journalism with ZK on Citrea',
+      filecoin: 'Active - Permanent storage & retrieval'
     }
   });
 });
@@ -58,6 +60,7 @@ app.use('/api/oracle', oracleRoutes);
 app.use('/api/staking', stakingRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/truthboard', truthboardRoutes);
+app.use('/api/filecoin', filecoinRoutes);
 
 // Ruta de información general
 app.get('/api/info', (req, res) => {
@@ -90,7 +93,8 @@ app.get('/api/info', (req, res) => {
           'Validación comunitaria preservando privacidad',
           'Donaciones anónimas',
           'Anclaje en Bitcoin para inmutabilidad',
-          'Resistencia a censura'
+          'Resistencia a censura',
+          'Archivado permanente en Filecoin'
         ],
         endpoints: {
           publish: '/api/truthboard/publish',
@@ -99,7 +103,31 @@ app.get('/api/info', (req, res) => {
           stats: '/api/truthboard/stats',
           citrea: '/api/truthboard/citrea/status'
         }
+      },
+      filecoin: {
+        name: 'Filecoin Storage API',
+        description: 'Almacenamiento permanente y recuperación de contenido validado',
+        blockchain: 'Filecoin Virtual Machine (FVM)',
+        features: [
+          'Archivado automático de noticias validadas',
+          'Almacenamiento permanente de evidencia',
+          'Snapshots públicos inmutables',
+          'Recuperación garantizada',
+          'Políticas de financiamiento DAO'
+        ],
+        endpoints: {
+          archive: '/api/filecoin/archive/news',
+          evidence: '/api/filecoin/evidence/store',
+          retrieve: '/api/filecoin/retrieve/:hash',
+          statistics: '/api/filecoin/statistics',
+          network: '/api/filecoin/network/status'
+        }
       }
+    },
+    integrations: {
+      'ZK + Filecoin': 'Anonymous journalism with permanent archival',
+      'Citrea + Bitcoin': 'Bitcoin rollup with L1 settlement',
+      'IPFS + FVM': 'Decentralized storage with smart contracts'
     },
     version: '1.0.0'
   });

@@ -11,6 +11,8 @@
     "deploy:truthboard:citrea-devnet": "npx hardhat run scripts/deploy-truthboard.js --network citrea_devnet",
     "deploy:truthboard:citrea-testnet": "npx hardhat run scripts/deploy-truthboard.js --network citrea_testnet",
     "deploy:truthboard:citrea-mainnet": "npx hardhat run scripts/deploy-truthboard.js --network citrea_mainnet",
+    "deploy:filecoin:mainnet": "npx hardhat run scripts/deploy-filecoin.js --network filecoin_mainnet",
+    "deploy:filecoin:testnet": "npx hardhat run scripts/deploy-filecoin.js --network filecoin_testnet",
     "test": "npx hardhat test",
     "help": "npx hardhat help"
   },
@@ -23,7 +25,11 @@
     "zk-proofs",
     "citrea",
     "bitcoin-rollup",
-    "anonymous-journalism"
+    "anonymous-journalism",
+    "filecoin",
+    "ipfs",
+    "permanent-storage",
+    "decentralized-storage"
   ],
   "author": "TrueBlock Team",
   "license": "MIT",
