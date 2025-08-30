@@ -13,6 +13,8 @@
     "deploy:truthboard:citrea-mainnet": "npx hardhat run scripts/deploy-truthboard.js --network citrea_mainnet",
     "deploy:filecoin:mainnet": "npx hardhat run scripts/deploy-filecoin.js --network filecoin_mainnet",
     "deploy:filecoin:testnet": "npx hardhat run scripts/deploy-filecoin.js --network filecoin_testnet",
+    "deploy:base:miniapp": "npx hardhat run scripts/deploy-base-miniapp.js --network base",
+    "deploy:base:miniapp:testnet": "npx hardhat run scripts/deploy-base-miniapp.js --network base-sepolia",
     "test": "npx hardhat test",
     "help": "npx hardhat help"
   },
