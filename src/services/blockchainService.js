@@ -139,14 +139,8 @@ class BlockchainService {
         console.log(`✅ Noticia enviada exitosamente. TX: ${tx.hash}`);
         return tx.hash;
       } else {
-        // Modo simulado
-        console.log(`📝 Simulando envío de noticia: ${contentHash}`);
-        const simulatedTxHash = `0x${Math.random().toString(16).padStart(64, '0')}`;
-        
-        // Simular delay de transacción
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        return simulatedTxHash;
+        // Modo simulado - crear datos ficticios en base de datos
+        return await this.createMockValidation(contentHash);
       }
     } catch (error) {
       console.error('Error enviando noticia:', error.shortMessage || error.message);
@@ -160,10 +154,8 @@ class BlockchainService {
         console.log('🔄 Error general - Fallback a modo simulado');
       }
       
-      // Fallback a modo simulado para cualquier error
-      const simulatedTxHash = `0x${Math.random().toString(16).padStart(64, '0')}`;
-      await new Promise(resolve => setTimeout(resolve, 500));
-      return simulatedTxHash;
+      // Fallback a modo simulado con datos en BD
+      return await this.createMockValidation(contentHash);
     }
   }
 
@@ -172,6 +164,32 @@ class BlockchainService {
    */
   async getValidation(contentHash) {
     try {
+      // Primero buscar en base de datos local
+      const databaseService = require('./databaseService');
+      await databaseService.initialize();
+      const localValidation = await databaseService.getValidation(contentHash);
+      
+      if (localValidation) {
+        console.log(`📋 Validación encontrada en base de datos local para: ${contentHash}`);
+        return {
+          contentHash,
+          finalScore: localValidation.finalScore || 0,
+          isFinalized: localValidation.isFinalized || false,
+          oracleVotes: localValidation.oracleVotes || [],
+          validatorVotes: localValidation.validatorVotes || [],
+          evidenceHash: localValidation.evidenceHash || '',
+          createdAt: localValidation.created_at || new Date().toISOString(),
+          status: localValidation.status || 'pending',
+          transactionHash: localValidation.transactionHash || '',
+          breakdown: localValidation.breakdown || {
+            fake_news_score: 0,
+            deepfake_score: 0,
+            bias_score: 0,
+            credibility_score: 0
+          }
+        };
+      }
+      
       if (this.contract) {
         // Modo blockchain real
         console.log(`🔍 Buscando validación en blockchain para: ${contentHash}`);
@@ -179,8 +197,9 @@ class BlockchainService {
         
         // Verificar si hay datos válidos
         if (!validation || validation.length === 0) {
-          console.log('⚠️  No se encontró validación en blockchain, usando modo simulado');
-          return this.getSimulatedValidation(contentHash);
+          console.log('⚠️  No se encontró validación en blockchain, generando datos ficticios');
+          await this.createMockValidation(contentHash);
+          return await this.getValidation(contentHash); // Recursión para obtener los datos recién creados
         }
         
         return {
@@ -191,6 +210,7 @@ class BlockchainService {
           validatorVotes: validation.validatorVotes || [],
           evidenceHash: validation.evidenceHash || '',
           createdAt: new Date(validation.timestamp * 1000).toISOString(),
+          status: 'blockchain',
           breakdown: {
             fake_news_score: validation.breakdown?.fakeNewsScore || 0,
             deepfake_score: validation.breakdown?.deepfakeScore || 0,
@@ -199,24 +219,26 @@ class BlockchainService {
           }
         };
       } else {
-        // Modo simulado - generar datos mock consistentes
-        console.log('📝 Usando modo simulado para validación');
-        return this.getSimulatedValidation(contentHash);
+        // Modo simulado - crear datos ficticios en BD si no existen
+        console.log('📝 No hay conexión blockchain, generando datos ficticios');
+        await this.createMockValidation(contentHash);
+        return await this.getValidation(contentHash); // Recursión para obtener los datos recién creados
       }
     } catch (error) {
       console.error('Error obteniendo validación:', error.shortMessage || error.message);
       
       // Casos específicos de error
       if (error.code === 'BAD_DATA' || error.message.includes('could not decode')) {
-        console.log('🔄 Datos de contrato vacíos - Fallback a modo simulado');
+        console.log('🔄 Datos de contrato vacíos - Creando datos ficticios');
       } else if (error.code === 'NETWORK_ERROR') {
-        console.log('🔄 Error de red - Fallback a modo simulado');
+        console.log('🔄 Error de red - Creando datos ficticios');
       } else {
-        console.log('🔄 Error general - Fallback a modo simulado');
+        console.log('🔄 Error general - Creando datos ficticios');
       }
       
-      // Fallback a modo simulado
-      return this.getSimulatedValidation(contentHash);
+      // Fallback: crear datos ficticios en BD
+      await this.createMockValidation(contentHash);
+      return await this.getValidation(contentHash);
     }
   }
 
@@ -252,6 +274,289 @@ class BlockchainService {
         credibility_score: score
       }
     };
+  }
+
+  /**
+   * Crea validación ficticia y la guarda en base de datos
+   */
+  async createMockValidation(contentHash) {
+    try {
+      const databaseService = require('./databaseService');
+      await databaseService.initialize();
+      
+      console.log(`📝 Creando validación ficticia para: ${contentHash}`);
+      
+      // Generar datos ficticios pero consistentes
+      const hash = parseInt(contentHash.slice(-8), 16);
+      const simulatedTxHash = `0x${Math.random().toString(16).padStart(64, '0')}`;
+      
+      // Crear validación ficticia
+      const mockValidation = {
+        id: `validation_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`,
+        contentHash: contentHash,
+        transactionHash: simulatedTxHash,
+        finalScore: (hash % 80) + 20, // Score entre 20-100
+        isFinalized: true,
+        status: 'simulated',
+        created_at: new Date().toISOString(),
+        
+        // Votos de oráculos ficticios
+        oracleVotes: Array.from({ length: Math.floor(hash % 5) + 2 }, (_, i) => ({
+          id: `oracle_vote_${Date.now()}_${i}`,
+          oracleAddress: `0x${(hash + i).toString(16).padStart(40, '0')}`,
+          vote: (hash + i) % 3 !== 0, // 66% positivos
+          confidence: ((hash + i) % 30) + 70,
+          specialization: ['fake_news', 'deepfake', 'image_manipulation', 'text_analysis'][i % 4],
+          timestamp: new Date().toISOString()
+        })),
+        
+        // Votos de validadores ficticios
+        validatorVotes: Array.from({ length: Math.floor(hash % 8) + 3 }, (_, i) => ({
+          id: `validator_vote_${Date.now()}_${i}`,
+          validatorAddress: `0x${(hash + i + 100).toString(16).padStart(40, '0')}`,
+          vote: (hash + i) % 4 !== 0, // 75% positivos
+          confidence: ((hash + i) % 25) + 75,
+          category: ['general', 'politics', 'science', 'technology'][i % 4],
+          timestamp: new Date().toISOString()
+        })),
+        
+        evidenceHash: `Qm${contentHash.slice(2, 46)}`,
+        breakdown: {
+          fake_news_score: Math.max(0, 100 - ((hash % 80) + 20)),
+          deepfake_score: (hash % 20),
+          bias_score: (hash % 40),
+          credibility_score: (hash % 80) + 20
+        }
+      };
+      
+      // Guardar en base de datos
+      await databaseService.addValidation(mockValidation);
+      
+      // Crear oráculos ficticios si no existen
+      for (const oracleVote of mockValidation.oracleVotes) {
+        const existingOracle = await databaseService.getOracleByAddress(oracleVote.oracleAddress);
+        if (!existingOracle) {
+          await databaseService.addOracle({
+            address: oracleVote.oracleAddress,
+            specialization: oracleVote.specialization,
+            stake: ((hash % 20) + 5).toString(),
+            reputation: (hash % 200) + 800,
+            isActive: true,
+            status: 'simulated',
+            created_at: new Date().toISOString()
+          });
+        }
+      }
+      
+      // Crear validadores ficticios si no existen  
+      for (const validatorVote of mockValidation.validatorVotes) {
+        const existingValidator = await databaseService.getValidatorByAddress(validatorVote.validatorAddress);
+        if (!existingValidator) {
+          await databaseService.addValidator({
+            address: validatorVote.validatorAddress,
+            category: validatorVote.category,
+            stake: ((hash % 15) + 3).toString(),
+            reputation: (hash % 180) + 700,
+            isActive: true,
+            status: 'simulated',
+            created_at: new Date().toISOString()
+          });
+        }
+      }
+      
+      console.log(`✅ Validación ficticia creada y guardada en BD: ${simulatedTxHash}`);
+      
+      // Simular delay de transacción
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      return simulatedTxHash;
+      
+    } catch (error) {
+      console.error('Error creando validación ficticia:', error);
+      // Fallback básico
+      const simulatedTxHash = `0x${Math.random().toString(16).padStart(64, '0')}`;
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return simulatedTxHash;
+    }
+  }
+
+  /**
+   * Crea oráculo ficticio con validaciones
+   */
+  async createMockOracle(oracleAddress) {
+    try {
+      const databaseService = require('./databaseService');
+      await databaseService.initialize();
+      
+      console.log(`📝 Creando oráculo ficticio: ${oracleAddress}`);
+      
+      const hash = parseInt(oracleAddress.slice(-8), 16);
+      
+      // Crear oráculo ficticio
+      const mockOracle = {
+        address: oracleAddress,
+        specialization: ['fake_news', 'deepfake', 'image_manipulation', 'text_analysis'][hash % 4],
+        stake: ((hash % 20) + 5).toString(),
+        reputation: (hash % 200) + 800,
+        isActive: true,
+        status: 'simulated',
+        created_at: new Date().toISOString(),
+        
+        // Generar validaciones ficticias para este oráculo
+        validations: Array.from({ length: Math.floor(hash % 10) + 3 }, (_, i) => ({
+          contentHash: `0x${(hash + i).toString(16).padStart(64, '0')}`,
+          score: (hash + i) % 100,
+          confidence: ((hash + i) % 30) + 70,
+          vote: (hash + i) % 3 !== 0,
+          created_at: new Date(Date.now() - (i * 86400000)).toISOString(),
+          status: 'completed',
+          transactionHash: `0x${Math.random().toString(16).padStart(64, '0')}`
+        }))
+      };
+      
+      // Guardar en base de datos
+      await databaseService.addOracle(mockOracle);
+      
+      console.log(`✅ Oráculo ficticio creado: ${oracleAddress}`);
+      return mockOracle;
+      
+    } catch (error) {
+      console.error('Error creando oráculo ficticio:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Obtiene tareas de validación disponibles para oráculos
+   */
+  async getTasks(oracleAddress) {
+    try {
+      // Buscar en base de datos local
+      const databaseService = require('./databaseService');
+      await databaseService.initialize();
+      
+      const tasks = await databaseService.getTasks();
+      
+      if (tasks && tasks.length > 0) {
+        console.log(`📋 Tareas encontradas en BD: ${tasks.length}`);
+        return tasks.map(task => ({
+          id: task.id,
+          contentHash: task.contentHash,
+          title: task.title,
+          content: task.content,
+          url: task.url,
+          priority: task.priority || 'medium',
+          deadline: task.deadline,
+          reward: task.reward || '0.1',
+          requiredSpecialization: task.requiredSpecialization,
+          status: task.status || 'pending',
+          createdAt: task.created_at,
+          type: task.type || 'validation'
+        }));
+      }
+
+      if (this.contract) {
+        console.log(`🔍 Buscando tareas en blockchain para oráculo: ${oracleAddress}`);
+        // En un contrato real, esto sería una función del contrato
+        // Por ahora generar tareas ficticias
+        await this.createMockTasks();
+        return await this.getTasks(oracleAddress);
+      } else {
+        // Crear tareas ficticias si no existe conexión
+        console.log('📝 No hay conexión blockchain, generando tareas ficticias');
+        await this.createMockTasks();
+        return await this.getTasks(oracleAddress);
+      }
+    } catch (error) {
+      console.error('Error obteniendo tareas:', error.shortMessage || error.message);
+      
+      // Fallback: crear tareas ficticias
+      await this.createMockTasks();
+      return await this.getTasks(oracleAddress);
+    }
+  }
+
+  /**
+   * Crea tareas ficticias de validación
+   */
+  async createMockTasks() {
+    try {
+      const databaseService = require('./databaseService');
+      await databaseService.initialize();
+      
+      console.log('📝 Creando tareas ficticias de validación');
+      
+      const mockTasks = [
+        {
+          id: `task_${Date.now()}_1`,
+          contentHash: `0x${Math.random().toString(16).padStart(64, '0')}`,
+          title: 'Verificar noticia sobre elecciones',
+          content: 'Una noticia sobre resultados electorales requiere verificación de credibilidad.',
+          url: 'https://example.com/news/elections-2024',
+          priority: 'high',
+          deadline: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          reward: '0.15',
+          requiredSpecialization: 'politics',
+          status: 'pending',
+          created_at: new Date().toISOString(),
+          type: 'validation'
+        },
+        {
+          id: `task_${Date.now()}_2`,
+          contentHash: `0x${Math.random().toString(16).padStart(64, '0')}`,
+          title: 'Análisis de deepfake en video',
+          content: 'Video viral que necesita análisis para detectar posible manipulación deepfake.',
+          url: 'https://example.com/video/viral-clip',
+          priority: 'medium',
+          deadline: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+          reward: '0.2',
+          requiredSpecialization: 'deepfake',
+          status: 'pending',
+          created_at: new Date().toISOString(),
+          type: 'validation'
+        },
+        {
+          id: `task_${Date.now()}_3`,
+          contentHash: `0x${Math.random().toString(16).padStart(64, '0')}`,
+          title: 'Verificar imagen científica',
+          content: 'Imagen que acompaña artículo científico necesita verificación de autenticidad.',
+          url: 'https://example.com/science/breakthrough',
+          priority: 'medium',
+          deadline: new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString(),
+          reward: '0.12',
+          requiredSpecialization: 'image_manipulation',
+          status: 'pending',
+          created_at: new Date().toISOString(),
+          type: 'validation'
+        },
+        {
+          id: `task_${Date.now()}_4`,
+          contentHash: `0x${Math.random().toString(16).padStart(64, '0')}`,
+          title: 'Análisis de sesgo en artículo',
+          content: 'Artículo de opinión requiere análisis de sesgo y verificación de hechos.',
+          url: 'https://example.com/opinion/controversial-topic',
+          priority: 'low',
+          deadline: new Date(Date.now() + 96 * 60 * 60 * 1000).toISOString(),
+          reward: '0.08',
+          requiredSpecialization: 'text_analysis',
+          status: 'pending',
+          created_at: new Date().toISOString(),
+          type: 'validation'
+        }
+      ];
+      
+      // Guardar tareas en base de datos
+      for (const task of mockTasks) {
+        await databaseService.addTask(task);
+      }
+      
+      console.log(`✅ ${mockTasks.length} tareas ficticias creadas`);
+      return mockTasks;
+      
+    } catch (error) {
+      console.error('Error creando tareas ficticias:', error);
+      return [];
+    }
   }
 
   /**

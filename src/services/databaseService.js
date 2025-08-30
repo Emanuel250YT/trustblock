@@ -248,6 +248,107 @@ class DatabaseService {
       category: news.category
     }));
   }
+
+  async addValidation(validationData) {
+    if (!this.data) await this.initialize();
+    
+    this.data.validations.push(validationData);
+    await this.save();
+    return validationData;
+  }
+
+  async addOracle(oracleData) {
+    if (!this.data) await this.initialize();
+    
+    this.data.oracles.push(oracleData);
+    await this.save();
+    return oracleData;
+  }
+
+  async addValidator(validatorData) {
+    if (!this.data) await this.initialize();
+    
+    this.data.validators.push(validatorData);
+    await this.save();
+    return validatorData;
+  }
+
+  async getOracleByAddress(address) {
+    if (!this.data) await this.initialize();
+    return this.data.oracles.find(o => o.address === address);
+  }
+
+  async getValidatorByAddress(address) {
+    if (!this.data) await this.initialize();
+    return this.data.validators.find(v => v.address === address);
+  }
+
+  async getAllOracles() {
+    if (!this.data) await this.initialize();
+    return this.data.oracles;
+  }
+
+  async getAllValidators() {
+    if (!this.data) await this.initialize();
+    return this.data.validators;
+  }
+
+  /**
+   * Agrega una nueva tarea
+   */
+  async addTask(task) {
+    try {
+      if (!this.data) await this.initialize();
+      if (!this.data.tasks) {
+        this.data.tasks = [];
+      }
+      this.data.tasks.push(task);
+      await this.save();
+      console.log(`📝 Tarea agregada: ${task.id}`);
+      return task;
+    } catch (error) {
+      console.error('Error agregando tarea:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Obtiene una tarea por ID
+   */
+  async getTaskById(taskId) {
+    try {
+      if (!this.data) await this.initialize();
+      const tasks = this.data.tasks || [];
+      return tasks.find(task => task.id === taskId);
+    } catch (error) {
+      console.error('Error obteniendo tarea por ID:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Actualiza el estado de una tarea
+   */
+  async updateTaskStatus(taskId, status) {
+    try {
+      if (!this.data) await this.initialize();
+      const tasks = this.data.tasks || [];
+      const taskIndex = tasks.findIndex(task => task.id === taskId);
+      
+      if (taskIndex !== -1) {
+        tasks[taskIndex].status = status;
+        tasks[taskIndex].updated_at = new Date().toISOString();
+        await this.save();
+        console.log(`📝 Estado de tarea actualizado: ${taskId} -> ${status}`);
+        return tasks[taskIndex];
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error actualizando estado de tarea:', error);
+      return null;
+    }
+  }
 }
 
 module.exports = new DatabaseService();
