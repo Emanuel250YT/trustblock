@@ -1,40 +1,47 @@
 const { ethers } = require('ethers');
+const databaseService = require('../src/services/databaseService');
+const ipfsService = require('../src/services/ipfsService');
 const newsService = require('../src/services/newsService');
-const validationService = require('../src/services/validationService');
-const stakingService = require('../src/services/stakingService');
-const oracleService = require('../src/services/oracleService');
 
 /**
- * Script para desplegar datos de prueba para testing
- * Crea al menos 3 elementos de cada categoría principal
+ * Script para desplegar datos de prueba REALES para testing
+ * Crea al menos 3 elementos de cada categoría principal y los guarda en DB
  */
 
 async function deployTestData() {
-  console.log('🚀 Iniciando despliegue de datos de prueba...\n');
+  console.log('🚀 Iniciando despliegue de datos de prueba REALES...\n');
 
   try {
-    // 1. Crear noticias de prueba
-    console.log('📰 Creando noticias de prueba...');
-    await createTestNews();
+    // Inicializar base de datos
+    await databaseService.initialize();
 
-    // 2. Crear oráculos de prueba
-    console.log('🤖 Creando oráculos de prueba...');
-    await createTestOracles();
+    // 1. Crear noticias de prueba REALES
+    console.log('📰 Creando noticias de prueba REALES...');
+    await createRealTestNews();
 
-    // 3. Crear validadores de prueba
-    console.log('👥 Creando validadores de prueba...');
-    await createTestValidators();
+    // 2. Crear oráculos de prueba REALES
+    console.log('🤖 Creando oráculos de prueba REALES...');
+    await createRealTestOracles();
 
-    // 4. Crear validaciones de prueba
-    console.log('✅ Creando validaciones de prueba...');
-    await createTestValidations();
+    // 3. Crear validadores de prueba REALES
+    console.log('👥 Creando validadores de prueba REALES...');
+    await createRealTestValidators();
 
-    // 5. Crear artículos TruthBoard de prueba
-    console.log('🔒 Creando artículos TruthBoard de prueba...');
-    await createTestTruthBoardArticles();
+    // 4. Crear validaciones de prueba REALES
+    console.log('✅ Creando validaciones de prueba REALES...');
+    await createRealTestValidations();
 
-    console.log('\n✅ Datos de prueba desplegados exitosamente!');
+    // 5. Crear artículos TruthBoard de prueba REALES
+    console.log('🔒 Creando artículos TruthBoard de prueba REALES...');
+    await createRealTestTruthBoardArticles();
+
+    // 6. Mostrar estadísticas finales
+    console.log('📊 Mostrando estadísticas finales...');
+    await showFinalStats();
+
+    console.log('\n✅ Datos de prueba REALES desplegados exitosamente!');
     console.log('🔗 Puedes probar la API en: http://localhost:3000/health');
+    console.log('📊 Ver estadísticas: http://localhost:3000/api/info');
 
   } catch (error) {
     console.error('❌ Error al desplegar datos de prueba:', error);
@@ -42,7 +49,7 @@ async function deployTestData() {
   }
 }
 
-async function createTestNews() {
+async function createRealTestNews() {
   const testNews = [
     {
       url: 'https://example.com/news/bitcoin-price-surge',
@@ -87,31 +94,52 @@ async function createTestNews() {
     console.log(`  📄 Creando noticia ${i + 1}: ${news.title.substring(0, 50)}...`);
     
     try {
-      // Simular procesamiento de contenido
+      // Procesar contenido real
       const processedContent = await newsService.processContent({
         url: news.url,
         content: news.content,
         title: news.title
       });
 
-      // Simular hash IPFS
-      const contentHash = `Qm${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
+      // Subir a IPFS REAL
+      const contentHash = await ipfsService.uploadContent({
+        title: news.title,
+        content: news.content,
+        url: news.url,
+        source: news.source,
+        category: news.category,
+        timestamp: new Date().toISOString()
+      });
       
-      // Simular estado de validación
+      // Determinar estado de validación
       const validationStatus = news.isFake ? 'fake' : (Math.random() > 0.3 ? 'verified' : 'uncertain');
       const score = news.isFake ? Math.floor(Math.random() * 30) + 10 : Math.floor(Math.random() * 30) + 70;
 
-      console.log(`    ✓ Hash: ${contentHash}`);
-      console.log(`    ✓ Estado: ${validationStatus} (${score} puntos)`);
+      // Guardar en base de datos REAL
+      const savedNews = await databaseService.addNews({
+        contentHash,
+        title: news.title,
+        content: news.content,
+        url: news.url,
+        source: news.source,
+        category: news.category,
+        status: validationStatus,
+        score: score,
+        isFake: news.isFake || false
+      });
+
+      console.log(`    ✅ Hash IPFS: ${contentHash}`);
+      console.log(`    ✅ Estado: ${validationStatus} (${score} puntos)`);
+      console.log(`    ✅ ID en DB: ${savedNews.id}`);
 
     } catch (error) {
       console.log(`    ❌ Error: ${error.message}`);
     }
   }
-  console.log('✅ Noticias de prueba creadas\n');
+  console.log('✅ Noticias REALES creadas y guardadas\n');
 }
 
-async function createTestOracles() {
+async function createRealTestOracles() {
   const testOracles = [
     {
       address: '0x1234567890123456789012345678901234567890',
@@ -148,24 +176,34 @@ async function createTestOracles() {
     console.log(`  🤖 Registrando oráculo ${i + 1}: ${oracle.name}`);
     
     try {
-      // Simular registro de oráculo
-      const oracleId = `oracle_${Date.now()}_${i}`;
-      const txHash = `0x${Math.random().toString(16).substring(2, 66)}`;
+      // Guardar en base de datos REAL
+      const savedOracle = await databaseService.addOracle({
+        address: oracle.address,
+        name: oracle.name,
+        specialization: oracle.specialization,
+        accuracy: oracle.accuracy,
+        stake: oracle.stake,
+        reputation: 500 + Math.floor(oracle.accuracy * 5) // Basado en precisión
+      });
 
-      console.log(`    ✓ ID: ${oracleId}`);
-      console.log(`    ✓ Especialización: ${oracle.specialization}`);
-      console.log(`    ✓ Precisión: ${oracle.accuracy}%`);
-      console.log(`    ✓ Stake: ${oracle.stake} ETH`);
-      console.log(`    ✓ TX: ${txHash}`);
+      // Simular transaction hash (en producción sería real)
+      const txHash = `0x${Math.random().toString(16).padStart(64, '0')}`;
+
+      console.log(`    ✅ ID en DB: ${savedOracle.id}`);
+      console.log(`    ✅ Especialización: ${oracle.specialization}`);
+      console.log(`    ✅ Precisión: ${oracle.accuracy}%`);
+      console.log(`    ✅ Stake: ${oracle.stake} ETH`);
+      console.log(`    ✅ Reputación inicial: ${savedOracle.reputation}`);
+      console.log(`    ✅ TX simulado: ${txHash}`);
 
     } catch (error) {
       console.log(`    ❌ Error: ${error.message}`);
     }
   }
-  console.log('✅ Oráculos de prueba registrados\n');
+  console.log('✅ Oráculos REALES registrados y guardados\n');
 }
 
-async function createTestValidators() {
+async function createRealTestValidators() {
   const testValidators = [
     {
       address: '0x5678901234567890123456789012345678901234',
@@ -202,45 +240,78 @@ async function createTestValidators() {
     console.log(`  👤 Registrando validador ${i + 1}: ${validator.name}`);
     
     try {
-      // Simular registro de validador
-      const validatorId = `validator_${Date.now()}_${i}`;
-      const txHash = `0x${Math.random().toString(16).substring(2, 66)}`;
+      // Guardar en base de datos REAL
+      const savedValidator = await databaseService.addValidator({
+        address: validator.address,
+        name: validator.name,
+        category: validator.category,
+        reputation: validator.reputation,
+        stake: validator.stake
+      });
 
-      console.log(`    ✓ ID: ${validatorId}`);
-      console.log(`    ✓ Categoría: ${validator.category}`);
-      console.log(`    ✓ Reputación: ${validator.reputation}`);
-      console.log(`    ✓ Stake: ${validator.stake} ETH`);
-      console.log(`    ✓ TX: ${txHash}`);
+      // Simular transaction hash
+      const txHash = `0x${Math.random().toString(16).padStart(64, '0')}`;
+
+      console.log(`    ✅ ID en DB: ${savedValidator.id}`);
+      console.log(`    ✅ Categoría: ${validator.category}`);
+      console.log(`    ✅ Reputación: ${validator.reputation}`);
+      console.log(`    ✅ Stake: ${validator.stake} ETH`);
+      console.log(`    ✅ TX simulado: ${txHash}`);
 
     } catch (error) {
       console.log(`    ❌ Error: ${error.message}`);
     }
   }
-  console.log('✅ Validadores de prueba registrados\n');
+  console.log('✅ Validadores REALES registrados y guardados\n');
 }
 
-async function createTestValidations() {
-  console.log('  🔍 Creando validaciones simuladas...');
+async function createRealTestValidations() {
+  console.log('  🔍 Creando validaciones REALES...');
   
-  // Simular varias validaciones para las noticias creadas
+  // Obtener noticias creadas para validar
+  const allNews = await databaseService.getNews();
+  
   const validationResults = [
-    { contentHash: 'QmFakeNews123', votes: 15, trueVotes: 2, fakeVotes: 13, score: 15 },
-    { contentHash: 'QmRealNews456', votes: 12, trueVotes: 11, fakeVotes: 1, score: 92 },
-    { contentHash: 'QmMedicalNews789', votes: 8, trueVotes: 7, fakeVotes: 1, score: 88 },
-    { contentHash: 'QmCryptoNews012', votes: 20, trueVotes: 18, fakeVotes: 2, score: 90 },
-    { contentHash: 'QmClimateNews345', votes: 14, trueVotes: 13, fakeVotes: 1, score: 93 }
+    { contentHash: allNews[0]?.contentHash, votes: 15, trueVotes: 2, fakeVotes: 13, score: 15, status: 'fake' },
+    { contentHash: allNews[1]?.contentHash, votes: 12, trueVotes: 11, fakeVotes: 1, score: 92, status: 'verified' },
+    { contentHash: allNews[2]?.contentHash, votes: 8, trueVotes: 7, fakeVotes: 1, score: 88, status: 'verified' },
+    { contentHash: allNews[3]?.contentHash, votes: 20, trueVotes: 18, fakeVotes: 2, score: 90, status: 'verified' },
+    { contentHash: allNews[4]?.contentHash, votes: 14, trueVotes: 13, fakeVotes: 1, score: 93, status: 'verified' }
   ];
 
   for (let i = 0; i < validationResults.length; i++) {
     const validation = validationResults[i];
-    console.log(`    ✓ Validación ${i + 1}: ${validation.contentHash} - Score: ${validation.score}`);
-    console.log(`      Votos: ${validation.trueVotes} real, ${validation.fakeVotes} fake`);
+    
+    if (!validation.contentHash) {
+      console.log(`    ⚠️ Saltando validación ${i + 1}: no hay noticia disponible`);
+      continue;
+    }
+    
+    try {
+      // Guardar validación en base de datos REAL
+      const savedValidation = await databaseService.addValidation({
+        contentHash: validation.contentHash,
+        totalVotes: validation.votes,
+        trueVotes: validation.trueVotes,
+        fakeVotes: validation.fakeVotes,
+        score: validation.score,
+        status: validation.status,
+        finalized: true
+      });
+
+      console.log(`    ✅ Validación ${i + 1}: ${validation.contentHash.substring(0, 12)}... - Score: ${validation.score}`);
+      console.log(`      Votos: ${validation.trueVotes} real, ${validation.fakeVotes} fake`);
+      console.log(`      ID en DB: ${savedValidation.id}`);
+
+    } catch (error) {
+      console.log(`    ❌ Error en validación ${i + 1}: ${error.message}`);
+    }
   }
 
-  console.log('✅ Validaciones de prueba creadas\n');
+  console.log('✅ Validaciones REALES creadas y guardadas\n');
 }
 
-async function createTestTruthBoardArticles() {
+async function createRealTestTruthBoardArticles() {
   const testArticles = [
     {
       title: 'Investigación: Corrupción en contratos públicos de infraestructura',
@@ -267,23 +338,67 @@ async function createTestTruthBoardArticles() {
     console.log(`  📝 Publicando artículo TruthBoard ${i + 1}: ${article.title.substring(0, 50)}...`);
     
     try {
-      // Simular publicación anónima
-      const articleId = `zk_article_${Date.now()}_${i}`;
-      const citreaTxHash = `0x${Math.random().toString(16).substring(2, 66)}`;
-      const ipfsHash = `Qm${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`;
-      const donationAddress = `0x${Math.random().toString(16).substring(2, 42)}`;
+      // Subir contenido a IPFS REAL
+      const ipfsHash = await ipfsService.uploadContent({
+        title: article.title,
+        content: article.content,
+        region: article.region,
+        category: article.category,
+        timestamp: new Date().toISOString(),
+        anonymous: true
+      });
 
-      console.log(`    ✓ ID: ${articleId}`);
-      console.log(`    ✓ Región: ${article.region}`);
-      console.log(`    ✓ Citrea TX: ${citreaTxHash}`);
-      console.log(`    ✓ IPFS: ${ipfsHash}`);
-      console.log(`    ✓ Donaciones: ${donationAddress}`);
+      // Simular transaction hash de Citrea
+      const citreaTxHash = `0x${Math.random().toString(16).padStart(64, '0')}`;
+      
+      // Generar dirección de donación
+      const donationAddress = `0x${Math.random().toString(16).padStart(40, '0')}`;
+
+      // Guardar en base de datos REAL
+      const savedArticle = await databaseService.addTruthBoardArticle({
+        title: article.title,
+        content: article.content,
+        region: article.region,
+        category: article.category,
+        ipfsHash: ipfsHash,
+        citreaTxHash: citreaTxHash,
+        donationAddress: donationAddress
+      });
+
+      console.log(`    ✅ ID en DB: ${savedArticle.id}`);
+      console.log(`    ✅ Región: ${article.region}`);
+      console.log(`    ✅ IPFS Hash: ${ipfsHash}`);
+      console.log(`    ✅ Citrea TX: ${citreaTxHash}`);
+      console.log(`    ✅ Donaciones: ${donationAddress}`);
+      console.log(`    ✅ Puntuación anonimato: ${savedArticle.anonymityScore}`);
 
     } catch (error) {
       console.log(`    ❌ Error: ${error.message}`);
     }
   }
-  console.log('✅ Artículos TruthBoard de prueba creados\n');
+  console.log('✅ Artículos TruthBoard REALES creados y guardados\n');
+}
+
+async function showFinalStats() {
+  try {
+    const stats = await databaseService.getStats();
+    const ipfsStats = await ipfsService.getStats();
+
+    console.log('📊 ESTADÍSTICAS FINALES:');
+    console.log(`  📰 Total noticias: ${stats.totalNews}`);
+    console.log(`  ✅ Noticias verificadas: ${stats.verifiedNews}`);
+    console.log(`  ❌ Noticias falsas: ${stats.fakeNews}`);
+    console.log(`  🤖 Total oráculos: ${stats.totalOracles}`);
+    console.log(`  👥 Total validadores: ${stats.totalValidators}`);
+    console.log(`  🔍 Total validaciones: ${stats.totalValidations}`);
+    console.log(`  🗳️ Total votos: ${stats.totalVotes}`);
+    console.log(`  🔒 Artículos TruthBoard: ${stats.truthboardArticles}`);
+    console.log(`  📁 IPFS - Total pins: ${ipfsStats.totalPins}`);
+    console.log(`  📁 IPFS - Servicio: ${ipfsStats.service}`);
+
+  } catch (error) {
+    console.error('Error obteniendo estadísticas:', error);
+  }
 }
 
 // Ejecutar script si es llamado directamente
@@ -301,9 +416,10 @@ if (require.main === module) {
 
 module.exports = {
   deployTestData,
-  createTestNews,
-  createTestOracles,
-  createTestValidators,
-  createTestValidations,
-  createTestTruthBoardArticles
+  createRealTestNews,
+  createRealTestOracles,
+  createRealTestValidators,
+  createRealTestValidations,
+  createRealTestTruthBoardArticles,
+  showFinalStats
 };
