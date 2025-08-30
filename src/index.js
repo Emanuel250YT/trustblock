@@ -2,8 +2,28 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
 require('dotenv').config();
+
+// Importar rate limiters organizados
+const {
+  generalLimiter,
+  validationLimiter,
+  stakingLimiter,
+  publishLimiter,
+  searchLimiter,
+  registrationLimiter,
+  filecoinLimiter,
+  confidentialLimiter,
+  developmentLimiter
+} = require('./middleware/rateLimiters');
+
+// Importar middleware de debug para proxy
+const {
+  debugProxy,
+  rateLimitInfo,
+  validateProxyConfig,
+  createProxyTestEndpoint
+} = require('./middleware/proxyDebug');
 
 const validationRoutes = require('./routes/validation');
 const oracleRoutes = require('./routes/oracle');
@@ -16,8 +36,32 @@ const confidentialRoutes = require('./routes/confidential');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Configurar trust proxy - IMPORTANTE para rate limiting detrás de proxies
+// Con Cloudflare + Nginx, tenemos 2 proxies en la cadena
+const trustProxy = process.env.TRUST_PROXY?.toLowerCase() === 'true' || 
+                   process.env.NODE_ENV === 'production';
+
+if (trustProxy) {
+  // Con Cloudflare + Nginx = 2 proxies
+  // Cloudflare → Nginx → App
+  const proxyCount = parseInt(process.env.PROXY_COUNT) || 2;
+  app.set('trust proxy', proxyCount);
+  console.log(`🔧 Trust proxy configurado: ${proxyCount} proxy(s) (Cloudflare + Nginx)`);
+} else {
+  app.set('trust proxy', false);
+  console.log(`🔧 Trust proxy deshabilitado para desarrollo local`);
+}
+
 // Middleware de seguridad
 app.use(helmet());
+
+// Middleware de debug para proxy (solo en desarrollo)
+if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROXY) {
+  app.use(debugProxy);
+}
+app.use(validateProxyConfig);
+app.use(rateLimitInfo);
+
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
     ? ['https://trueblock.app', 'https://truthboard.app']
@@ -25,13 +69,12 @@ app.use(cors({
   credentials: true
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // máximo 100 requests por ventana
-  message: 'Demasiadas solicitudes, intenta de nuevo más tarde.'
-});
-app.use(limiter);
+// Rate limiting general - usar el limiter apropiado según el entorno
+const mainLimiter = process.env.NODE_ENV === 'development' 
+  ? developmentLimiter 
+  : generalLimiter;
+
+app.use(mainLimiter);
 
 // Middleware de logging
 app.use(morgan('combined'));
@@ -56,14 +99,17 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Rutas principales
-app.use('/api/validation', validationRoutes);
-app.use('/api/oracle', oracleRoutes);
-app.use('/api/staking', stakingRoutes);
+// Rutas principales con rate limiters específicos
+app.use('/api/validation', validationLimiter, validationRoutes);
+app.use('/api/oracle', [registrationLimiter, validationLimiter], oracleRoutes);
+app.use('/api/staking', [registrationLimiter, stakingLimiter], stakingRoutes);
 app.use('/api/news', newsRoutes);
-app.use('/api/truthboard', truthboardRoutes);
-app.use('/api/filecoin', filecoinRoutes);
-app.use('/api/confidential', confidentialRoutes);
+app.use('/api/truthboard', publishLimiter, truthboardRoutes);
+app.use('/api/filecoin', filecoinLimiter, filecoinRoutes);
+app.use('/api/confidential', confidentialLimiter, confidentialRoutes);
+
+// Aplicar rate limiter específico para búsquedas después de las rutas news
+app.use('/api/news/search', searchLimiter);
 
 // Ruta de información general
 app.get('/api/info', (req, res) => {
@@ -157,6 +203,9 @@ app.get('/api/info', (req, res) => {
     version: '1.0.0'
   });
 });
+
+// Crear endpoint de debug para proxy
+createProxyTestEndpoint(app);
 
 // Middleware de manejo de errores
 app.use((err, req, res, next) => {
