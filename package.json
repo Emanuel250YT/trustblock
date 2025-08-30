@@ -1,21 +1,29 @@
 {
   "name": "trueblock-backend",
   "version": "1.0.0",
-  "description": "TrueBlock - Plataforma descentralizada para validación de noticias contra desinformación",
+  "description": "TrueBlock & TruthBoard - Plataformas descentralizadas para validación de noticias y periodismo anónimo",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "compile-contracts": "npx hardhat compile",
     "deploy": "npx hardhat run scripts/deploy.js",
-    "test": "npx hardhat test"
+    "deploy:truthboard:citrea-devnet": "npx hardhat run scripts/deploy-truthboard.js --network citrea_devnet",
+    "deploy:truthboard:citrea-testnet": "npx hardhat run scripts/deploy-truthboard.js --network citrea_testnet",
+    "deploy:truthboard:citrea-mainnet": "npx hardhat run scripts/deploy-truthboard.js --network citrea_mainnet",
+    "test": "npx hardhat test",
+    "help": "npx hardhat help"
   },
   "keywords": [
     "blockchain",
     "desinformacion",
     "oracles",
     "express",
-    "solidity"
+    "solidity",
+    "zk-proofs",
+    "citrea",
+    "bitcoin-rollup",
+    "anonymous-journalism"
   ],
   "author": "TrueBlock Team",
   "license": "MIT",

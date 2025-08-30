@@ -9,6 +9,7 @@ const validationRoutes = require('./routes/validation');
 const oracleRoutes = require('./routes/oracle');
 const stakingRoutes = require('./routes/staking');
 const newsRoutes = require('./routes/news');
+const truthboardRoutes = require('./routes/truthboard');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,7 +18,7 @@ const PORT = process.env.PORT || 3000;
 app.use(helmet());
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
-    ? ['https://trueblock.app']
+    ? ['https://trueblock.app', 'https://truthboard.app']
     : ['http://localhost:3000', 'http://localhost:3001'],
   credentials: true
 }));
@@ -41,9 +42,13 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
-    message: 'TrueBlock API está funcionando',
+    message: 'TrueBlock & TruthBoard API están funcionando',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: '1.0.0',
+    services: {
+      trueblock: 'Active - Decentralized news validation',
+      truthboard: 'Active - Anonymous journalism with ZK on Citrea'
+    }
   });
 });
 
@@ -52,27 +57,51 @@ app.use('/api/validation', validationRoutes);
 app.use('/api/oracle', oracleRoutes);
 app.use('/api/staking', stakingRoutes);
 app.use('/api/news', newsRoutes);
+app.use('/api/truthboard', truthboardRoutes);
 
 // Ruta de información general
 app.get('/api/info', (req, res) => {
   res.json({
-    name: 'TrueBlock API',
-    description: 'Plataforma descentralizada para validación de noticias contra desinformación',
-    version: '1.0.0',
-    blockchain: 'Base Network',
-    features: [
-      'Validación multicapa con IA y comunidad',
-      'Sistema de staking y slashing',
-      'Oráculos especializados',
-      'Almacenamiento descentralizado en IPFS',
-      'Consenso on-chain'
-    ],
-    endpoints: {
-      validation: '/api/validation',
-      oracle: '/api/oracle',
-      staking: '/api/staking',
-      news: '/api/news'
-    }
+    platforms: {
+      trueblock: {
+        name: 'TrueBlock API',
+        description: 'Plataforma descentralizada para validación de noticias contra desinformación',
+        blockchain: 'Ethereum/Polygon compatible',
+        features: [
+          'Validación multicapa con IA y comunidad',
+          'Sistema de staking y slashing',
+          'Oráculos especializados',
+          'Almacenamiento descentralizado en IPFS',
+          'Consenso on-chain'
+        ],
+        endpoints: {
+          validation: '/api/validation',
+          oracle: '/api/oracle',
+          staking: '/api/staking',
+          news: '/api/news'
+        }
+      },
+      truthboard: {
+        name: 'TruthBoard API',
+        description: 'Plataforma anónima de periodismo con pruebas ZK en Citrea Bitcoin rollup',
+        blockchain: 'Citrea Bitcoin rollup',
+        features: [
+          'Publicación anónima con ZK proofs',
+          'Validación comunitaria preservando privacidad',
+          'Donaciones anónimas',
+          'Anclaje en Bitcoin para inmutabilidad',
+          'Resistencia a censura'
+        ],
+        endpoints: {
+          publish: '/api/truthboard/publish',
+          validate: '/api/truthboard/validate',
+          donate: '/api/truthboard/donate',
+          stats: '/api/truthboard/stats',
+          citrea: '/api/truthboard/citrea/status'
+        }
+      }
+    },
+    version: '1.0.0'
   });
 });
 
@@ -121,10 +150,12 @@ process.on('SIGINT', () => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 TrueBlock API ejecutándose en puerto ${PORT}`);
+  console.log(`🚀 TrueBlock & TruthBoard API ejecutándose en puerto ${PORT}`);
   console.log(`📊 Entorno: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
   console.log(`📖 Info API: http://localhost:${PORT}/api/info`);
+  console.log(`\n🔍 TrueBlock: Validación descentralizada de noticias`);
+  console.log(`🔒 TruthBoard: Periodismo anónimo con ZK en Citrea`);
 });
 
 module.exports = app;
