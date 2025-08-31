@@ -1,0 +1,14 @@
+{
+  "network": "Coston2 Testnet",
+  "chainId": 114,
+  "contractAddress": "0x112baa264d204d6e952d927761b91E9a68B9c0D2",
+  "deployer": "0x121A783E85E8d8775557A1ba29a35dA0fE7CE7b2",
+  "timestamp": "2025-08-31T07:16:21.542Z",
+  "blockNumber": 21414413,
+  "interfaces": {
+    "ftso": "0x0000000000000000000000000000000000000001",
+    "fdc": "0x0000000000000000000000000000000000000002",
+    "secureRandom": "0x0000000000000000000000000000000000000003"
+  },
+  "explorer": "https://flarescan.com/address/0x112baa264d204d6e952d927761b91E9a68B9c0D2"
+}
