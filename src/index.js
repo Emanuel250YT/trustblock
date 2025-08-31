@@ -32,14 +32,15 @@ const newsRoutes = require('./routes/news');
 const truthboardRoutes = require('./routes/truthboard');
 const filecoinRoutes = require('./routes/filecoin');
 const confidentialRoutes = require('./routes/confidential');
+const flareRoutes = require('./routes/flare');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Configurar trust proxy - IMPORTANTE para rate limiting detrás de proxies
 // Con Cloudflare + Nginx, tenemos 2 proxies en la cadena
-const trustProxy = process.env.TRUST_PROXY?.toLowerCase() === 'true' || 
-                   process.env.NODE_ENV === 'production';
+const trustProxy = process.env.TRUST_PROXY?.toLowerCase() === 'true' ||
+  process.env.NODE_ENV === 'production';
 
 if (trustProxy) {
   // Con Cloudflare + Nginx = 2 proxies
@@ -69,12 +70,12 @@ app.use(cors({
 // Middleware adicional para CORS universal - DEBE ir ANTES que otros middlewares
 app.use((req, res, next) => {
   console.log(`🌐 CORS Request: ${req.method} ${req.path} from origin: ${req.headers.origin || 'no-origin'}`);
-  
+
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
   res.header('Access-Control-Allow-Headers', '*');
   res.header('Access-Control-Max-Age', '86400');
-  
+
   if (req.method === 'OPTIONS') {
     console.log(`✅ CORS Preflight handled for ${req.path}`);
     return res.sendStatus(200);
@@ -90,8 +91,8 @@ app.use(validateProxyConfig);
 app.use(rateLimitInfo);
 
 // Rate limiting general - usar el limiter apropiado según el entorno
-const mainLimiter = process.env.NODE_ENV === 'development' 
-  ? developmentLimiter 
+const mainLimiter = process.env.NODE_ENV === 'development'
+  ? developmentLimiter
   : generalLimiter;
 
 app.use(mainLimiter);
@@ -151,7 +152,7 @@ app.post('/deploy-test-data', async (req, res) => {
   try {
     const { deployTestData } = require('../scripts/deploy-test-data');
     await deployTestData();
-    
+
     res.json({
       success: true,
       message: 'Test data deployed successfully',
@@ -171,7 +172,7 @@ app.get('/api/database/stats', async (req, res) => {
   try {
     const databaseService = require('./services/databaseService');
     const stats = await databaseService.getStats();
-    
+
     res.json({
       success: true,
       data: stats,
@@ -194,6 +195,7 @@ app.use('/api/news', newsRoutes);
 app.use('/api/truthboard', publishLimiter, truthboardRoutes);
 app.use('/api/filecoin', filecoinLimiter, filecoinRoutes);
 app.use('/api/confidential', confidentialLimiter, confidentialRoutes);
+app.use('/api/flare', validationLimiter, flareRoutes);
 
 // Aplicar rate limiter específico para búsquedas después de las rutas news
 app.use('/api/news/search', searchLimiter);
@@ -296,9 +298,9 @@ app.get('/api/blockchain/balance', async (req, res) => {
   try {
     const { BlockchainService } = require('./services/blockchainService');
     const blockchainService = new BlockchainService();
-    
+
     const balanceInfo = await blockchainService.checkBalance();
-    
+
     res.json({
       success: true,
       balance: balanceInfo,
@@ -320,7 +322,7 @@ app.get('/api/tasks', async (req, res) => {
   try {
     const databaseService = require('./services/databaseService');
     const tasks = await databaseService.getTasks();
-    
+
     res.json({
       success: true,
       tasks: tasks || [],

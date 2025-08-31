@@ -15,6 +15,10 @@
     "deploy:filecoin:testnet": "npx hardhat run scripts/deploy-filecoin.js --network filecoin_testnet",
     "deploy:base:miniapp": "npx hardhat run scripts/deploy-base-miniapp.js --network base",
     "deploy:base:miniapp:testnet": "npx hardhat run scripts/deploy-base-miniapp.js --network base-sepolia",
+    "deploy:flare:mainnet": "npx hardhat run scripts/deploy-flare.js --network flare",
+    "deploy:flare:coston": "npx hardhat run scripts/deploy-flare.js --network coston",
+    "deploy:flare:coston2": "npx hardhat run scripts/deploy-flare.js --network coston2",
+    "deploy:ecosystem": "npx hardhat run scripts/deploy-all-ecosystem.js",
     "test": "npx hardhat test",
     "help": "npx hardhat help"
   },
@@ -31,7 +35,11 @@
     "filecoin",
     "ipfs",
     "permanent-storage",
-    "decentralized-storage"
+    "decentralized-storage",
+    "flare-network",
+    "ftso-oracle",
+    "data-connector",
+    "time-series-oracle"
   ],
   "author": "TrueBlock Team",
   "license": "MIT",

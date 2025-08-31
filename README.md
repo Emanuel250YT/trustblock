@@ -8,8 +8,9 @@
 ![Zama FHE](https://img.shields.io/badge/Zama-FHE-red)
 ![Citrea](https://img.shields.io/badge/Citrea-Bitcoin%20L2-orange)
 ![Filecoin](https://img.shields.io/badge/Filecoin-Storage-blue)
+![Flare](https://img.shields.io/badge/Flare-Data%20Oracle-red)
 
-**TrueBlock & TruthBoard** es un ecosistema descentralizado completo que combina múltiples tecnologías blockchain, IA y criptografía avanzada para combatir la desinformación y promover el periodismo anónimo. Incluye validación multicapa, oráculos de IA, sistemas de staking/slashing, Zero-Knowledge proofs, y almacenamiento permanente descentralizado.
+**TrueBlock & TruthBoard** es un ecosistema descentralizado completo que combina múltiples tecnologías blockchain, IA y criptografía avanzada para combatir la desinformación y promover el periodismo anónimo. Incluye validación multicapa, oráculos de IA, sistemas de staking/slashing, Zero-Knowledge proofs, almacenamiento permanente descentralizado, y oráculos de datos en tiempo real.
 
 ## 🌟 Plataformas del Ecosistema
 
@@ -48,6 +49,15 @@
 - **Interface Simplificada**: Para usuarios casuales
 - **Gamificación**: Sistema de reputación y leaderboards
 - **Optimizada para Mobile**: Perfecta para Base App
+
+### 📊 TrueBlock Oracle Hub (Flare Network)
+
+- **Oráculos de Datos Nativos**: FTSO para feeds de precios en tiempo real
+- **Flare Data Connector**: Verificación de datos Web2 on-chain
+- **Secure Random Numbers**: Aleatoriedad verificable para validaciones
+- **Cross-Chain Data**: Agregación de datos de múltiples blockchains
+- **Time Series Oracle**: Datos históricos y tendencias para contexto
+- **Verificación de Fuentes**: Validación automática de credibilidad de medios
 - **Votación Comunitaria**: Participación rápida y divertida
 
 ## 🚀 Tecnologías Utilizadas
@@ -163,6 +173,16 @@ LIGHTHOUSE_BASE_URL=https://node.lighthouse.storage
 LIGHTHOUSE_GATEWAY_URL=https://gateway.lighthouse.storage/ipfs
 LIGHTHOUSE_MAX_FILE_SIZE=104857600
 LIGHTHOUSE_DEFAULT_DURATION=2592000
+
+# Flare Network Configuration
+FLARE_NETWORK=coston2
+FLARE_PRIVATE_KEY=
+FLARE_RPC_URL=https://coston2-api.flare.network/ext/C/rpc
+COSTON_RPC_URL=https://costonapi.flare.network/ext/C/rpc
+COSTON2_RPC_URL=https://coston2-api.flare.network/ext/C/rpc
+FLARE_MAINNET_CONTRACT=
+FLARE_COSTON_CONTRACT=
+FLARE_COSTON2_CONTRACT=
 
 
 
@@ -722,7 +742,29 @@ POST /api/confidential/fhe/decrypt
 GET /api/confidential/fhe/public-key
 ```
 
-#### 🗃️ Filecoin - Storage
+#### � Flare - Oracle Hub
+
+```http
+# Price Feeds & Economic Context
+GET /api/flare/prices?symbols=BTC,ETH,USDC
+GET /api/flare/economic-context
+GET /api/flare/random
+
+# News Validation with Oracle Data
+POST /api/flare/submit-news
+POST /api/flare/validate-news
+GET /api/flare/validation/:newsHash
+
+# Validator Management
+POST /api/flare/register-validator
+GET /api/flare/validator/:address
+
+# Media Credibility Tracking
+GET /api/flare/media-credibility/:mediaName
+GET /api/flare/status
+```
+
+#### �🗃️ Filecoin - Storage
 
 ```http
 # Permanent Storage
@@ -1350,6 +1392,259 @@ const vote = async (contentId, score) => {
 }
 ```
 
+### 📊 Flare Oracle Hub Routes
+
+#### **GET** `/api/flare/prices`
+
+Obtener precios actuales usando FTSO (Flare Time Series Oracle).
+
+**Query Parameters:**
+
+- `symbols` (opcional): Símbolos separados por comas (default: BTC,ETH,USDC,FLR)
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "BTC": {
+      "value": "43250000000000000000000", // 18 decimales
+      "symbol": "BTC",
+      "timestamp": 1693478400000
+    },
+    "ETH": {
+      "value": "2650000000000000000000",
+      "symbol": "ETH",
+      "timestamp": 1693478400000
+    }
+  },
+  "network": "coston2",
+  "timestamp": 1693478400000
+}
+```
+
+#### **GET** `/api/flare/economic-context`
+
+Obtener contexto económico completo con múltiples precios.
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "btcPrice": "43250000000000000000000",
+    "ethPrice": "2650000000000000000000",
+    "usdcPrice": "1000000000000000000",
+    "timestamp": "1693478400",
+    "network": "coston2"
+  }
+}
+```
+
+#### **GET** `/api/flare/random`
+
+Obtener número aleatorio seguro usando Secure Random Numbers.
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "randomNumber": "0x1a2b3c4d5e6f789...",
+    "timestamp": 1693478400000,
+    "network": "coston2"
+  }
+}
+```
+
+#### **POST** `/api/flare/submit-news`
+
+Enviar noticia para validación con contexto de precio.
+
+**Request Body:**
+
+```json
+{
+  "content": "Bitcoin alcanza nuevo máximo histórico...",
+  "sourceUrl": "https://example.com/news/bitcoin-ath",
+  "priceSymbol": "BTC",
+  "signature": "0x123abc...",
+  "address": "0x742d35Cc6634C0532925a3b8D84dCdB7E0e9b2D1"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "transactionHash": "0xabc123...",
+    "newsHash": "0x789def...",
+    "sourceUrl": "https://example.com/news/bitcoin-ath",
+    "priceSymbol": "BTC",
+    "network": "coston2",
+    "explorer": "https://coston2.testnet.flarescan.com/tx/0xabc123..."
+  }
+}
+```
+
+#### **POST** `/api/flare/validate-news`
+
+Validar noticia usando FDC (Flare Data Connector).
+
+**Request Body:**
+
+```json
+{
+  "newsHash": "0x789def...",
+  "attestationData": "0x456ghi...",
+  "merkleProof": ["0x111...", "0x222..."],
+  "signature": "0x123abc...",
+  "address": "0x742d35Cc6634C0532925a3b8D84dCdB7E0e9b2D1"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "transactionHash": "0xdef456...",
+    "newsHash": "0x789def...",
+    "validator": "0x742d35Cc6634C0532925a3b8D84dCdB7E0e9b2D1",
+    "network": "coston2",
+    "explorer": "https://coston2.testnet.flarescan.com/tx/0xdef456..."
+  }
+}
+```
+
+#### **POST** `/api/flare/register-validator`
+
+Registrar validador con stake en FLR.
+
+**Request Body:**
+
+```json
+{
+  "stakeAmount": 1.5,
+  "signature": "0x123abc...",
+  "address": "0x742d35Cc6634C0532925a3b8D84dCdB7E0e9b2D1"
+}
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "transactionHash": "0x987zyx...",
+    "validator": "0x742d35Cc6634C0532925a3b8D84dCdB7E0e9b2D1",
+    "stakedAmount": 1.5,
+    "network": "coston2",
+    "explorer": "https://coston2.testnet.flarescan.com/tx/0x987zyx..."
+  }
+}
+```
+
+#### **GET** `/api/flare/validation/:newsHash`
+
+Obtener detalles de validación de una noticia.
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "sourceUrl": "https://example.com/news/bitcoin-ath",
+    "timestamp": "1693478400",
+    "credibilityScore": "85",
+    "priceContext": "43250000000000000000000",
+    "isValidated": true,
+    "validatorCount": "3",
+    "newsHash": "0x789def...",
+    "network": "coston2"
+  }
+}
+```
+
+#### **GET** `/api/flare/media-credibility/:mediaName`
+
+Obtener credibilidad de un medio de comunicación.
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "mediaName": "CoinDesk",
+    "credibilityScore": "78",
+    "validationsCount": "45",
+    "lastUpdate": "1693478400",
+    "isVerified": true,
+    "network": "coston2"
+  }
+}
+```
+
+#### **GET** `/api/flare/validator/:address`
+
+Obtener perfil de validador.
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "validatorAddress": "0x742d35Cc6634C0532925a3b8D84dCdB7E0e9b2D1",
+    "reputation": "156",
+    "validationsCount": "12",
+    "stakedAmount": "1.5",
+    "isActive": true,
+    "network": "coston2"
+  }
+}
+```
+
+#### **GET** `/api/flare/status`
+
+Obtener estado del oracle Flare.
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "isAvailable": true,
+    "stats": {
+      "network": "coston2",
+      "blockNumber": 123456,
+      "pricesAvailable": true,
+      "randomAvailable": true,
+      "contractDeployed": true,
+      "timestamp": 1693478400000
+    },
+    "network": {
+      "network": "coston2",
+      "chainId": 114,
+      "rpcUrl": "https://coston2-api.flare.network/ext/C/rpc",
+      "explorer": "https://coston2.testnet.flarescan.com/",
+      "contractAddress": "0x123abc..."
+    },
+    "timestamp": 1693478400000
+  }
+}
+```
+
 ### ⏱️ Rate Limiting
 
 #### Límites por Endpoint
@@ -1362,6 +1657,7 @@ const vote = async (contentId, score) => {
 | `/api/truthboard/publish`    | 5 requests   | 1 hora  | Por IP     |
 | `/api/confidential/*`        | 30 requests  | 15 min  | Por IP     |
 | `/api/filecoin/*`            | 10 requests  | 1 hora  | Por IP     |
+| `/api/flare/*`               | 50 requests  | 15 min  | Por IP     |
 | **General**                  | 100 requests | 15 min  | Por IP     |
 
 #### Headers de Rate Limiting
@@ -2133,6 +2429,7 @@ Este proyecto está bajo la **Licencia MIT**. Ver `LICENSE` para más detalles.
 - **Base Mini-Apps Track**: Implementación de TrueBlock Mini-App
 - **Zama FHE Track**: TruthBoard Confidential
 - **Filecoin Track**: Almacenamiento permanente descentralizado
+- **Flare Network Track**: Oráculos de datos nativos y validación económica
 
 ---
 

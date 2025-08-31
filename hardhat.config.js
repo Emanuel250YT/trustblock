@@ -97,6 +97,28 @@ module.exports = {
       accounts: process.env.PRIVATE_KEY && process.env.PRIVATE_KEY.length >= 64 ? [process.env.PRIVATE_KEY.startsWith('0x') ? process.env.PRIVATE_KEY : '0x' + process.env.PRIVATE_KEY] : [],
       gasPrice: 2000000000, // 2 gwei
       gas: 8000000
+    },
+    // Flare Networks
+    flare: {
+      url: process.env.FLARE_RPC_URL || "https://flare-api.flare.network/ext/C/rpc",
+      chainId: 14,
+      accounts: process.env.FLARE_PRIVATE_KEY && process.env.FLARE_PRIVATE_KEY.length >= 64 ? [process.env.FLARE_PRIVATE_KEY.startsWith('0x') ? process.env.FLARE_PRIVATE_KEY : '0x' + process.env.FLARE_PRIVATE_KEY] : [],
+      gasPrice: 25000000000, // 25 gwei
+      gas: 8000000
+    },
+    coston: {
+      url: process.env.COSTON_RPC_URL || "https://costonapi.flare.network/ext/C/rpc",
+      chainId: 16,
+      accounts: process.env.FLARE_PRIVATE_KEY && process.env.FLARE_PRIVATE_KEY.length >= 64 ? [process.env.FLARE_PRIVATE_KEY.startsWith('0x') ? process.env.FLARE_PRIVATE_KEY : '0x' + process.env.FLARE_PRIVATE_KEY] : [],
+      gasPrice: 25000000000,
+      gas: 8000000
+    },
+    coston2: {
+      url: process.env.COSTON2_RPC_URL || "https://coston2-api.flare.network/ext/C/rpc",
+      chainId: 114,
+      accounts: process.env.FLARE_PRIVATE_KEY && process.env.FLARE_PRIVATE_KEY.length >= 64 ? [process.env.FLARE_PRIVATE_KEY.startsWith('0x') ? process.env.FLARE_PRIVATE_KEY : '0x' + process.env.FLARE_PRIVATE_KEY] : [],
+      gasPrice: 25000000000,
+      gas: 8000000
     }
   },
   paths: {
