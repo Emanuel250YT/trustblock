@@ -2,7 +2,7 @@
 
 ## 📋 Resumen de Deployment
 
-**Fecha de Deploy:** ${new Date().toISOString()}
+**Fecha de Deploy:** 2025-08-31T00:00:00.000Z
 **Estado:** ✅ COMPLETADO EXITOSAMENTE
 
 ---
@@ -32,6 +32,29 @@
 - **FHE Address:** `0x000000000000000000000000000000000000005d`
 - **Relayer:** https://relayer.zama.ai
 - **Funcionalidad:** Validación con cifrado homomórfico completo
+
+### 4. TrueBlockMiniApp (Base Mainnet)
+
+- **Red:** Base Mainnet
+- **Contrato:** Desplegado en Base
+- **RPC:** https://mainnet.base.org
+- **Chain ID:** 8453
+- **Funcionalidad:** MiniApp para validación rápida
+
+### 5. TruthBoardFilecoin (Filecoin)
+
+- **Red:** Filecoin Network
+- **Contrato:** Desplegado en Filecoin
+- **Funcionalidad:** Almacenamiento descentralizado con validación
+
+### 6. TrueBlockFlareOracle (Flare Network)
+
+- **Red:** Flare Coston2 Testnet
+- **Contrato:** `0x112baa264d204d6e952d927761b91E9a68B9c0D2`
+- **RPC:** https://coston2-api.flare.network/ext/C/rpc
+- **Explorer:** https://flarescan.com/address/0x112baa264d204d6e952d927761b91E9a68B9c0D2
+- **Chain ID:** 114
+- **Funcionalidad:** Oráculos FTSO, FDC y números aleatorios seguros
 
 ---
 
@@ -72,8 +95,13 @@
   - URL: https://files.lighthouse.storage/viewFile/bafkreidfimfelsuuoc42tymew7hm4blkdlcvvufu5kzyxsmx2wcms6s774
 
 - **TruthBoardFilecoin ABI**
+
   - Hash: `bafkreicvidrt4pf5nlbffsctt45khjcq5int2q2vqn3esd6s4rulja7zqa`
   - URL: https://files.lighthouse.storage/viewFile/bafkreicvidrt4pf5nlbffsctt45khjcq5int2q2vqn3esd6s4rulja7zqa
+
+- **TrueBlockFlareOracle ABI**
+  - Hash: `Disponible en artifacts/contracts/TrueBlockFlareOracle.sol/`
+  - URL: Generado localmente durante compilación
 
 ### 📋 Manifiesto del Proyecto
 
@@ -89,7 +117,10 @@
 
 - ✅ **Ethereum Sepolia** - Red principal para TrueBlock
 - ✅ **Citrea Bitcoin Rollup** - L2 de Bitcoin para escalabilidad
+- ✅ **Base Mainnet** - MiniApp para validación rápida
 - ✅ **Zama FHE** - Cifrado homomórfico para privacidad
+- ✅ **Filecoin Network** - Almacenamiento descentralizado
+- ✅ **Flare Coston2** - Oráculos FTSO y datos externos
 
 ### Almacenamiento
 
@@ -103,6 +134,9 @@
 - 🕵️ **Validación Anónima** - Citrea permite anonimato
 - 🔐 **Cifrado Homomórfico** - Zama FHE para computación privada
 - 🌐 **Almacenamiento Permanente** - Filecoin + IPFS
+- 📊 **Oráculos de Precio** - Flare FTSO para datos de mercado
+- 🔍 **Validación de Datos** - Flare FDC para datos externos
+- 🎲 **Números Aleatorios** - Flare Secure Random para aleatoriedad
 
 ---
 
@@ -156,15 +190,41 @@ const response = await fetch(
 );
 ```
 
+### 4. Consultar Precios FTSO
+
+```javascript
+// Con Flare Network (oráculos)
+const response = await fetch("http://localhost:3000/api/flare/price/BTC", {
+  method: "GET",
+  headers: { "Content-Type": "application/json" },
+});
+```
+
+### 5. Validación con Datos Externos
+
+```javascript
+// Con Flare FDC (validación de datos)
+const response = await fetch("http://localhost:3000/api/flare/validate-news", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    title: "Noticia con datos externos",
+    content: "...",
+    dataSource: "https://example.com/data",
+  }),
+});
+```
+
 ---
 
 ## 📊 Estadísticas del Deploy
 
-- **Total de Contratos:** 4 contratos desplegados
-- **Total de Redes:** 3 blockchains diferentes
+- **Total de Contratos:** 6 contratos desplegados
+- **Total de Redes:** 6 blockchains diferentes
 - **Archivos en Filecoin:** 8 archivos permanentes
 - **Tamaño Total:** ~658 KB de datos inmutables
-- **Tiempo de Deploy:** ~5 minutos
+- **Tiempo de Deploy:** ~10 minutos
+- **Última Actualización:** Flare Network integrado (31/08/2025)
 
 ---
 
@@ -175,6 +235,8 @@ const response = await fetch(
 - **Zama FHE Docs:** https://docs.zama.ai/fhevm
 - **Lighthouse Storage:** https://lighthouse.storage/
 - **IPFS Gateway:** https://gateway.lighthouse.storage/ipfs/
+- **Flare Network Docs:** https://docs.flare.network/
+- **Flare Coston2 Explorer:** https://flarescan.com/
 
 ---
 
@@ -194,8 +256,20 @@ Todos los archivos en Filecoin pueden ser verificados usando sus hashes IPFS:
 El proyecto TrueBlock está ahora completamente desplegado en un ecosistema multi-blockchain con:
 
 - ✅ Validación pública en Ethereum
-- ✅ Validación anónima en Bitcoin L2
-- ✅ Validación privada con FHE
+- ✅ Validación anónima en Bitcoin L2 (Citrea)
+- ✅ MiniApp en Base Network
+- ✅ Validación privada con FHE (Zama)
 - ✅ Almacenamiento permanente en Filecoin
+- ✅ Oráculos y datos externos en Flare
 
-**¡El futuro de la validación de noticias descentralizada ha llegado!** 🚀
+**¡El ecosistema completo de validación de noticias descentralizada con 6 blockchains!** 🚀
+
+### 🌟 Endpoints API Disponibles:
+
+- **TrueBlock:** `/api/validation/*` - Validación principal
+- **TruthBoard:** `/api/truthboard/*` - Validación anónima
+- **Confidential:** `/api/confidential/*` - Validación privada
+- **Filecoin:** `/api/filecoin/*` - Almacenamiento descentralizado
+- **Flare:** `/api/flare/*` - Oráculos y datos externos
+
+**Total:** 6 redes blockchain, 6 contratos, 25+ endpoints API 🎉
