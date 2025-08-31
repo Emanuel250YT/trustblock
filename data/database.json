@@ -118,6 +118,51 @@
       "successfulValidations": 0,
       "createdAt": "2025-08-30T19:55:22.306Z",
       "status": "active"
+    },
+    {
+      "address": "0x000000000000000000000000000000008643e355",
+      "specialization": "fake_news",
+      "stake": "18",
+      "reputation": 853,
+      "isActive": true,
+      "status": "simulated",
+      "created_at": "2025-08-31T06:18:04.054Z"
+    },
+    {
+      "address": "0x000000000000000000000000000000008643e356",
+      "specialization": "deepfake",
+      "stake": "18",
+      "reputation": 853,
+      "isActive": true,
+      "status": "simulated",
+      "created_at": "2025-08-31T06:18:04.054Z"
+    },
+    {
+      "address": "0x000000000000000000000000000000008643e357",
+      "specialization": "image_manipulation",
+      "stake": "18",
+      "reputation": 853,
+      "isActive": true,
+      "status": "simulated",
+      "created_at": "2025-08-31T06:18:04.055Z"
+    },
+    {
+      "address": "0x000000000000000000000000000000008643e358",
+      "specialization": "text_analysis",
+      "stake": "18",
+      "reputation": 853,
+      "isActive": true,
+      "status": "simulated",
+      "created_at": "2025-08-31T06:18:04.056Z"
+    },
+    {
+      "address": "0x000000000000000000000000000000008643e359",
+      "specialization": "fake_news",
+      "stake": "18",
+      "reputation": 853,
+      "isActive": true,
+      "status": "simulated",
+      "created_at": "2025-08-31T06:18:04.056Z"
     }
   ],
   "validators": [
@@ -168,6 +213,78 @@
       "successfulVotes": 0,
       "createdAt": "2025-08-30T19:55:22.319Z",
       "status": "active"
+    },
+    {
+      "address": "0x000000000000000000000000000000008643e3b9",
+      "category": "general",
+      "stake": "6",
+      "reputation": 793,
+      "isActive": true,
+      "status": "simulated",
+      "created_at": "2025-08-31T06:18:04.057Z"
+    },
+    {
+      "address": "0x000000000000000000000000000000008643e3ba",
+      "category": "politics",
+      "stake": "6",
+      "reputation": 793,
+      "isActive": true,
+      "status": "simulated",
+      "created_at": "2025-08-31T06:18:04.058Z"
+    },
+    {
+      "address": "0x000000000000000000000000000000008643e3bb",
+      "category": "science",
+      "stake": "6",
+      "reputation": 793,
+      "isActive": true,
+      "status": "simulated",
+      "created_at": "2025-08-31T06:18:04.058Z"
+    },
+    {
+      "address": "0x000000000000000000000000000000008643e3bc",
+      "category": "technology",
+      "stake": "6",
+      "reputation": 793,
+      "isActive": true,
+      "status": "simulated",
+      "created_at": "2025-08-31T06:18:04.059Z"
+    },
+    {
+      "address": "0x000000000000000000000000000000008643e3bd",
+      "category": "general",
+      "stake": "6",
+      "reputation": 793,
+      "isActive": true,
+      "status": "simulated",
+      "created_at": "2025-08-31T06:18:04.059Z"
+    },
+    {
+      "address": "0x000000000000000000000000000000008643e3be",
+      "category": "politics",
+      "stake": "6",
+      "reputation": 793,
+      "isActive": true,
+      "status": "simulated",
+      "created_at": "2025-08-31T06:18:04.060Z"
+    },
+    {
+      "address": "0x000000000000000000000000000000008643e3bf",
+      "category": "science",
+      "stake": "6",
+      "reputation": 793,
+      "isActive": true,
+      "status": "simulated",
+      "created_at": "2025-08-31T06:18:04.060Z"
+    },
+    {
+      "address": "0x000000000000000000000000000000008643e3c0",
+      "category": "technology",
+      "stake": "6",
+      "reputation": 793,
+      "isActive": true,
+      "status": "simulated",
+      "created_at": "2025-08-31T06:18:04.061Z"
     }
   ],
   "validations": [
@@ -225,6 +342,130 @@
       "status": "verified",
       "createdAt": "2025-08-30T19:55:22.332Z",
       "finalizedAt": "2025-08-30T19:55:22.332Z"
+    },
+    {
+      "id": "validation_1756621084053_1uv9d1",
+      "contentHash": "Qm8be0fedbf90125aced17fcf58e9ceb45acb28643e355",
+      "transactionHash": "0x00000000000000000000000000000000000000000000000000.f93da8b88c5f1",
+      "finalScore": 73,
+      "isFinalized": true,
+      "status": "simulated",
+      "created_at": "2025-08-31T06:18:04.053Z",
+      "oracleVotes": [
+        {
+          "id": "oracle_vote_1756621084053_0",
+          "oracleAddress": "0x000000000000000000000000000000008643e355",
+          "vote": false,
+          "confidence": 73,
+          "specialization": "fake_news",
+          "timestamp": "2025-08-31T06:18:04.053Z"
+        },
+        {
+          "id": "oracle_vote_1756621084053_1",
+          "oracleAddress": "0x000000000000000000000000000000008643e356",
+          "vote": true,
+          "confidence": 74,
+          "specialization": "deepfake",
+          "timestamp": "2025-08-31T06:18:04.053Z"
+        },
+        {
+          "id": "oracle_vote_1756621084053_2",
+          "oracleAddress": "0x000000000000000000000000000000008643e357",
+          "vote": true,
+          "confidence": 75,
+          "specialization": "image_manipulation",
+          "timestamp": "2025-08-31T06:18:04.053Z"
+        },
+        {
+          "id": "oracle_vote_1756621084053_3",
+          "oracleAddress": "0x000000000000000000000000000000008643e358",
+          "vote": false,
+          "confidence": 76,
+          "specialization": "text_analysis",
+          "timestamp": "2025-08-31T06:18:04.053Z"
+        },
+        {
+          "id": "oracle_vote_1756621084053_4",
+          "oracleAddress": "0x000000000000000000000000000000008643e359",
+          "vote": true,
+          "confidence": 77,
+          "specialization": "fake_news",
+          "timestamp": "2025-08-31T06:18:04.053Z"
+        }
+      ],
+      "validatorVotes": [
+        {
+          "id": "validator_vote_1756621084053_0",
+          "validatorAddress": "0x000000000000000000000000000000008643e3b9",
+          "vote": true,
+          "confidence": 78,
+          "category": "general",
+          "timestamp": "2025-08-31T06:18:04.053Z"
+        },
+        {
+          "id": "validator_vote_1756621084053_1",
+          "validatorAddress": "0x000000000000000000000000000000008643e3ba",
+          "vote": true,
+          "confidence": 79,
+          "category": "politics",
+          "timestamp": "2025-08-31T06:18:04.053Z"
+        },
+        {
+          "id": "validator_vote_1756621084053_2",
+          "validatorAddress": "0x000000000000000000000000000000008643e3bb",
+          "vote": true,
+          "confidence": 80,
+          "category": "science",
+          "timestamp": "2025-08-31T06:18:04.053Z"
+        },
+        {
+          "id": "validator_vote_1756621084053_3",
+          "validatorAddress": "0x000000000000000000000000000000008643e3bc",
+          "vote": false,
+          "confidence": 81,
+          "category": "technology",
+          "timestamp": "2025-08-31T06:18:04.053Z"
+        },
+        {
+          "id": "validator_vote_1756621084053_4",
+          "validatorAddress": "0x000000000000000000000000000000008643e3bd",
+          "vote": true,
+          "confidence": 82,
+          "category": "general",
+          "timestamp": "2025-08-31T06:18:04.053Z"
+        },
+        {
+          "id": "validator_vote_1756621084053_5",
+          "validatorAddress": "0x000000000000000000000000000000008643e3be",
+          "vote": true,
+          "confidence": 83,
+          "category": "politics",
+          "timestamp": "2025-08-31T06:18:04.053Z"
+        },
+        {
+          "id": "validator_vote_1756621084053_6",
+          "validatorAddress": "0x000000000000000000000000000000008643e3bf",
+          "vote": true,
+          "confidence": 84,
+          "category": "science",
+          "timestamp": "2025-08-31T06:18:04.053Z"
+        },
+        {
+          "id": "validator_vote_1756621084053_7",
+          "validatorAddress": "0x000000000000000000000000000000008643e3c0",
+          "vote": false,
+          "confidence": 85,
+          "category": "technology",
+          "timestamp": "2025-08-31T06:18:04.053Z"
+        }
+      ],
+      "evidenceHash": "Qm8be0fedbf90125aced17fcf58e9ceb45acb28643e355",
+      "breakdown": {
+        "fake_news_score": 27,
+        "deepfake_score": 13,
+        "bias_score": 13,
+        "credibility_score": 73
+      }
     }
   ],
   "truthboard_articles": [
