@@ -93,48 +93,57 @@ router.get('/trending', async (req, res) => {
 });
 
 /**
- * @route GET /api/news/search
+ * @route POST /api/news/search
  * @desc Busca noticias por texto o criterios
  */
-router.get('/search', async (req, res) => {
+router.post('/search', async (req, res) => {
   try {
     const {
-      q,              // query text
-      source,         // source domain
-      dateFrom,       // fecha desde
-      dateTo,         // fecha hasta
-      verified,       // solo verificadas
+      query,
+      filters = {},
       page = 1,
       limit = 20
-    } = req.query;
+    } = req.body;
 
-    if (!q && !source) {
+    if (!query) {
       return res.status(400).json({
-        error: 'Parámetro de búsqueda requerido: q (texto) o source (fuente)'
+        error: 'Query requerido',
+        message: 'Debes proporcionar un texto de búsqueda'
       });
     }
 
     const searchParams = {
-      query: q,
-      source,
-      dateFrom: dateFrom ? new Date(dateFrom) : undefined,
-      dateTo: dateTo ? new Date(dateTo) : undefined,
-      verified: verified === 'true',
+      query,
+      filters: {
+        status: filters.status,
+        dateFrom: filters.dateFrom ? new Date(filters.dateFrom) : undefined,
+        dateTo: filters.dateTo ? new Date(filters.dateTo) : undefined,
+        minScore: filters.minScore ? parseInt(filters.minScore) : undefined
+      },
       page: parseInt(page),
       limit: parseInt(limit)
     };
 
+    const startTime = Date.now();
     const results = await newsService.searchNews(searchParams);
+    const searchTime = ((Date.now() - startTime) / 1000).toFixed(2);
 
     res.json({
       success: true,
-      data: results.news,
+      data: {
+        results: results.news,
+        totalResults: results.total,
+        searchTime: `${searchTime}s`
+      },
       meta: {
-        query: q,
-        source,
-        total: results.total,
+        query,
+        filters,
         page: parseInt(page),
-        limit: parseInt(limit)
+        limit: parseInt(limit),
+        total: results.total,
+        totalPages: Math.ceil(results.total / parseInt(limit)),
+        hasNext: parseInt(page) < Math.ceil(results.total / parseInt(limit)),
+        hasPrev: parseInt(page) > 1
       }
     });
 
@@ -377,6 +386,80 @@ router.get('/export/dataset', async (req, res) => {
     console.error('Error al exportar dataset:', error);
     res.status(500).json({
       error: 'Error al generar dataset',
+      message: error.message
+    });
+  }
+});
+
+/**
+ * @route GET /api/news/:contentHash
+ * @desc Obtiene el detalle completo de una noticia por su hash
+ */
+router.get('/:contentHash', async (req, res) => {
+  try {
+    const { contentHash } = req.params;
+
+    if (!contentHash) {
+      return res.status(400).json({
+        error: 'Hash de contenido requerido'
+      });
+    }
+
+    // Obtener contenido de IPFS
+    const content = await newsService.getNewsContent(contentHash);
+    
+    if (!content) {
+      return res.status(404).json({
+        error: 'Noticia no encontrada',
+        message: 'El hash proporcionado no corresponde a ninguna noticia'
+      });
+    }
+
+    // Obtener validación detallada
+    const validation = await validationService.getValidation(contentHash);
+    
+    // Obtener historial de validaciones
+    const validationHistory = await validationService.getValidationHistory(contentHash);
+
+    // Buscar archivo en Filecoin si existe
+    let filecoinArchive = null;
+    try {
+      filecoinArchive = await newsService.getFilecoinArchive(contentHash);
+    } catch (error) {
+      // No está archivado en Filecoin, continuar
+    }
+
+    res.json({
+      success: true,
+      data: {
+        contentHash,
+        title: content.title,
+        content: content.fullContent,
+        url: content.originalUrl,
+        status: validation?.status || 'pending',
+        finalScore: validation?.finalScore || 0,
+        detailedAnalysis: {
+          fake_news_probability: validation?.breakdown?.fake_news_score || 0,
+          bias_score: validation?.breakdown?.bias_score || 0,
+          credibility_score: validation?.breakdown?.credibility_score || 0,
+          fact_check_results: validation?.factCheckResults || {}
+        },
+        validationHistory: validationHistory || [],
+        ipfsHash: contentHash,
+        filecoinArchive: filecoinArchive?.cid || null,
+        metadata: {
+          timestamp: content.timestamp,
+          source: content.source,
+          category: content.category,
+          language: content.language || 'es'
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Error al obtener detalle de noticia:', error);
+    res.status(500).json({
+      error: 'Error al obtener noticia',
       message: error.message
     });
   }

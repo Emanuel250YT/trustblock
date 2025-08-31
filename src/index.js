@@ -2,8 +2,28 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
 require('dotenv').config();
+
+// Importar rate limiters organizados
+const {
+  generalLimiter,
+  validationLimiter,
+  stakingLimiter,
+  publishLimiter,
+  searchLimiter,
+  registrationLimiter,
+  filecoinLimiter,
+  confidentialLimiter,
+  developmentLimiter
+} = require('./middleware/rateLimiters');
+
+// Importar middleware de debug para proxy
+const {
+  debugProxy,
+  rateLimitInfo,
+  validateProxyConfig,
+  createProxyTestEndpoint
+} = require('./middleware/proxyDebug');
 
 const validationRoutes = require('./routes/validation');
 const oracleRoutes = require('./routes/oracle');
@@ -16,22 +36,65 @@ const confidentialRoutes = require('./routes/confidential');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Configurar trust proxy - IMPORTANTE para rate limiting detrás de proxies
+// Con Cloudflare + Nginx, tenemos 2 proxies en la cadena
+const trustProxy = process.env.TRUST_PROXY?.toLowerCase() === 'true' || 
+                   process.env.NODE_ENV === 'production';
+
+if (trustProxy) {
+  // Con Cloudflare + Nginx = 2 proxies
+  // Cloudflare → Nginx → App
+  const proxyCount = parseInt(process.env.PROXY_COUNT) || 2;
+  app.set('trust proxy', proxyCount);
+  console.log(`🔧 Trust proxy configurado: ${proxyCount} proxy(s) (Cloudflare + Nginx)`);
+} else {
+  app.set('trust proxy', false);
+  console.log(`🔧 Trust proxy deshabilitado para desarrollo local`);
+}
+
 // Middleware de seguridad
-app.use(helmet());
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? ['https://trueblock.app', 'https://truthboard.app']
-    : ['http://localhost:3000', 'http://localhost:3001'],
-  credentials: true
+app.use(helmet({
+  crossOriginEmbedderPolicy: false
 }));
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // máximo 100 requests por ventana
-  message: 'Demasiadas solicitudes, intenta de nuevo más tarde.'
+// CORS habilitado para TODOS los orígenes (provisional)
+app.use(cors({
+  origin: true, // Acepta cualquier origen
+  credentials: false,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: '*',
+  optionsSuccessStatus: 200
+}));
+
+// Middleware adicional para CORS universal - DEBE ir ANTES que otros middlewares
+app.use((req, res, next) => {
+  console.log(`🌐 CORS Request: ${req.method} ${req.path} from origin: ${req.headers.origin || 'no-origin'}`);
+  
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
+  res.header('Access-Control-Allow-Headers', '*');
+  res.header('Access-Control-Max-Age', '86400');
+  
+  if (req.method === 'OPTIONS') {
+    console.log(`✅ CORS Preflight handled for ${req.path}`);
+    return res.sendStatus(200);
+  }
+  next();
 });
-app.use(limiter);
+
+// Middleware de debug para proxy (solo en desarrollo)
+if (process.env.NODE_ENV === 'development' || process.env.DEBUG_PROXY) {
+  app.use(debugProxy);
+}
+app.use(validateProxyConfig);
+app.use(rateLimitInfo);
+
+// Rate limiting general - usar el limiter apropiado según el entorno
+const mainLimiter = process.env.NODE_ENV === 'development' 
+  ? developmentLimiter 
+  : generalLimiter;
+
+app.use(mainLimiter);
 
 // Middleware de logging
 app.use(morgan('combined'));
@@ -52,18 +115,88 @@ app.get('/health', (req, res) => {
       truthboard: 'Active - Anonymous journalism with ZK on Citrea',
       filecoin: 'Active - Permanent storage & retrieval',
       confidential: 'Active - FHE encrypted validation with Zama'
-    }
+    },
+    cors: 'ENABLED - All origins allowed'
   });
 });
 
-// Rutas principales
-app.use('/api/validation', validationRoutes);
-app.use('/api/oracle', oracleRoutes);
-app.use('/api/staking', stakingRoutes);
+// CORS test endpoint
+app.get('/test-cors', (req, res) => {
+  res.json({
+    success: true,
+    message: 'CORS está funcionando correctamente',
+    origin: req.headers.origin || 'No origin header',
+    method: req.method,
+    headers: req.headers,
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS,PATCH');
+  res.header('Access-Control-Allow-Headers', '*');
+  res.sendStatus(200);
+});
+
+// Test data deployment endpoint (only in development)
+app.post('/deploy-test-data', async (req, res) => {
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(403).json({
+      error: 'Forbidden',
+      message: 'Test data deployment only available in development'
+    });
+  }
+
+  try {
+    const { deployTestData } = require('../scripts/deploy-test-data');
+    await deployTestData();
+    
+    res.json({
+      success: true,
+      message: 'Test data deployed successfully',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error deploying test data:', error);
+    res.status(500).json({
+      error: 'Failed to deploy test data',
+      message: error.message
+    });
+  }
+});
+
+// Get database stats endpoint
+app.get('/api/database/stats', async (req, res) => {
+  try {
+    const databaseService = require('./services/databaseService');
+    const stats = await databaseService.getStats();
+    
+    res.json({
+      success: true,
+      data: stats,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error getting database stats:', error);
+    res.status(500).json({
+      error: 'Failed to get database stats',
+      message: error.message
+    });
+  }
+});
+
+// Rutas principales con rate limiters específicos
+app.use('/api/validation', validationLimiter, validationRoutes);
+app.use('/api/oracle', [registrationLimiter, validationLimiter], oracleRoutes);
+app.use('/api/staking', [registrationLimiter, stakingLimiter], stakingRoutes);
 app.use('/api/news', newsRoutes);
-app.use('/api/truthboard', truthboardRoutes);
-app.use('/api/filecoin', filecoinRoutes);
-app.use('/api/confidential', confidentialRoutes);
+app.use('/api/truthboard', publishLimiter, truthboardRoutes);
+app.use('/api/filecoin', filecoinLimiter, filecoinRoutes);
+app.use('/api/confidential', confidentialLimiter, confidentialRoutes);
+
+// Aplicar rate limiter específico para búsquedas después de las rutas news
+app.use('/api/news/search', searchLimiter);
 
 // Ruta de información general
 app.get('/api/info', (req, res) => {
@@ -157,6 +290,55 @@ app.get('/api/info', (req, res) => {
     version: '1.0.0'
   });
 });
+
+// Endpoint para verificar balance de wallet
+app.get('/api/blockchain/balance', async (req, res) => {
+  try {
+    const { BlockchainService } = require('./services/blockchainService');
+    const blockchainService = new BlockchainService();
+    
+    const balanceInfo = await blockchainService.checkBalance();
+    
+    res.json({
+      success: true,
+      balance: balanceInfo,
+      chainId: await blockchainService.getChainId(),
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error verificando balance:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error verificando balance',
+      message: error.message
+    });
+  }
+});
+
+// Endpoint para obtener tareas/validaciones pendientes
+app.get('/api/tasks', async (req, res) => {
+  try {
+    const databaseService = require('./services/databaseService');
+    const tasks = await databaseService.getTasks();
+    
+    res.json({
+      success: true,
+      tasks: tasks || [],
+      count: tasks ? tasks.length : 0,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error obteniendo tareas:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error obteniendo tareas',
+      message: error.message
+    });
+  }
+});
+
+// Crear endpoint de debug para proxy
+createProxyTestEndpoint(app);
 
 // Middleware de manejo de errores
 app.use((err, req, res, next) => {

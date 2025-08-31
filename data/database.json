@@ -1,0 +1,276 @@
+{
+  "news": [
+    {
+      "id": "news_1756583722285_9g0zg6",
+      "contentHash": "Qm8fa93ca61c4412ae7010cfb690f84dcc98c54977c3cf",
+      "title": "Bitcoin alcanza nuevo máximo histórico de $100,000",
+      "content": "El precio de Bitcoin ha alcanzado un nuevo máximo histórico de $100,000 dólares, impulsado por la adopción institucional y las regulaciones favorables. Los analistas predicen que podría llegar a $150,000 antes de fin de año.",
+      "url": "https://example.com/news/bitcoin-price-surge",
+      "source": "CryptoNews",
+      "category": "cryptocurrency",
+      "timestamp": "2025-08-30T19:55:22.285Z",
+      "status": "uncertain",
+      "score": 78,
+      "isFake": false
+    },
+    {
+      "id": "news_1756583722288_563lo7",
+      "contentHash": "Qm3296c3bdb6ee95bfffd6cba4962326f4335e7bd3e7f4",
+      "title": "Nueva IA desarrollada por OpenAI supera capacidades humanas en matemáticas",
+      "content": "OpenAI ha anunciado el desarrollo de una nueva inteligencia artificial que puede resolver problemas matemáticos complejos superando las capacidades humanas promedio. Este avance marca un hito en el desarrollo de AGI.",
+      "url": "https://example.com/news/ai-breakthrough",
+      "source": "TechCrunch",
+      "category": "technology",
+      "timestamp": "2025-08-30T19:55:22.288Z",
+      "status": "verified",
+      "score": 97,
+      "isFake": false
+    },
+    {
+      "id": "news_1756583722291_4ymzmd",
+      "contentHash": "Qm7aa4e466a490e5abce9e89bd35e93e11438fef0bb107",
+      "title": "Acuerdo global para reducir emisiones de carbono en 50% para 2030",
+      "content": "Los líderes mundiales han firmado un acuerdo histórico para reducir las emisiones de carbono en un 50% antes de 2030. El acuerdo incluye inversiones masivas en energía renovable y tecnologías de captura de carbono.",
+      "url": "https://example.com/news/climate-action",
+      "source": "Climate News",
+      "category": "environment",
+      "timestamp": "2025-08-30T19:55:22.291Z",
+      "status": "verified",
+      "score": 81,
+      "isFake": false
+    },
+    {
+      "id": "news_1756583722293_zp08my",
+      "contentHash": "Qm7bc8e430e26a65c6ee80afcbd88a0effccb36ead30a2",
+      "title": "FALSO: Meteorito gigante impactará la Tierra mañana",
+      "content": "Circula información falsa sobre un supuesto meteorito que impactaría la Tierra. NASA y otras agencias espaciales han desmentido categóricamente esta información.",
+      "url": "https://example.com/news/fake-meteor",
+      "source": "FakeNewsSource",
+      "category": "science",
+      "timestamp": "2025-08-30T19:55:22.293Z",
+      "status": "fake",
+      "score": 20,
+      "isFake": true
+    },
+    {
+      "id": "news_1756583722295_w7ca1p",
+      "contentHash": "Qm4d48cfbcd0fde32da6c9191224e3773db7a186bf48fc",
+      "title": "Descubierta cura para el Alzheimer en pruebas clínicas fase 3",
+      "content": "Un nuevo tratamiento experimental ha mostrado resultados prometedores en la reversión de síntomas de Alzheimer en pacientes en fase temprana. Los resultados de fase 3 muestran una mejora del 80% en funciones cognitivas.",
+      "url": "https://example.com/news/medical-breakthrough",
+      "source": "Medical Journal",
+      "category": "health",
+      "timestamp": "2025-08-30T19:55:22.295Z",
+      "status": "verified",
+      "score": 73,
+      "isFake": false
+    }
+  ],
+  "oracles": [
+    {
+      "id": "oracle_1756583722298_xxmba8",
+      "address": "0x1234567890123456789012345678901234567890",
+      "name": "FakeNewsDetector AI",
+      "specialization": "fake_news",
+      "accuracy": 94.5,
+      "stake": "15.0",
+      "reputation": 972,
+      "totalValidations": 0,
+      "successfulValidations": 0,
+      "createdAt": "2025-08-30T19:55:22.298Z",
+      "status": "active"
+    },
+    {
+      "id": "oracle_1756583722300_w7bsnd",
+      "address": "0x2345678901234567890123456789012345678901",
+      "name": "DeepFake Analyzer",
+      "specialization": "deepfake",
+      "accuracy": 89.2,
+      "stake": "12.5",
+      "reputation": 946,
+      "totalValidations": 0,
+      "successfulValidations": 0,
+      "createdAt": "2025-08-30T19:55:22.300Z",
+      "status": "active"
+    },
+    {
+      "id": "oracle_1756583722303_50nppw",
+      "address": "0x3456789012345678901234567890123456789012",
+      "name": "Image Forensics AI",
+      "specialization": "image_manipulation",
+      "accuracy": 91.8,
+      "stake": "10.0",
+      "reputation": 959,
+      "totalValidations": 0,
+      "successfulValidations": 0,
+      "createdAt": "2025-08-30T19:55:22.303Z",
+      "status": "active"
+    },
+    {
+      "id": "oracle_1756583722306_fp5e9u",
+      "address": "0x4567890123456789012345678901234567890123",
+      "name": "Bias Detection Engine",
+      "specialization": "text_analysis",
+      "accuracy": 87.3,
+      "stake": "8.5",
+      "reputation": 936,
+      "totalValidations": 0,
+      "successfulValidations": 0,
+      "createdAt": "2025-08-30T19:55:22.306Z",
+      "status": "active"
+    }
+  ],
+  "validators": [
+    {
+      "id": "validator_1756583722310_wmdixd",
+      "address": "0x5678901234567890123456789012345678901234",
+      "name": "Professional Journalist",
+      "category": "journalist",
+      "reputation": 850,
+      "stake": "5.0",
+      "totalVotes": 0,
+      "successfulVotes": 0,
+      "createdAt": "2025-08-30T19:55:22.310Z",
+      "status": "active"
+    },
+    {
+      "id": "validator_1756583722312_ppg3e0",
+      "address": "0x6789012345678901234567890123456789012345",
+      "name": "Fact Checker Expert",
+      "category": "fact_checker",
+      "reputation": 920,
+      "stake": "7.5",
+      "totalVotes": 0,
+      "successfulVotes": 0,
+      "createdAt": "2025-08-30T19:55:22.312Z",
+      "status": "active"
+    },
+    {
+      "id": "validator_1756583722316_f0mzaq",
+      "address": "0x7890123456789012345678901234567890123456",
+      "name": "Domain Expert",
+      "category": "expert",
+      "reputation": 780,
+      "stake": "10.0",
+      "totalVotes": 0,
+      "successfulVotes": 0,
+      "createdAt": "2025-08-30T19:55:22.316Z",
+      "status": "active"
+    },
+    {
+      "id": "validator_1756583722319_jdhxx1",
+      "address": "0x8901234567890123456789012345678901234567",
+      "name": "Community Validator",
+      "category": "community",
+      "reputation": 650,
+      "stake": "2.5",
+      "totalVotes": 0,
+      "successfulVotes": 0,
+      "createdAt": "2025-08-30T19:55:22.319Z",
+      "status": "active"
+    }
+  ],
+  "validations": [
+    {
+      "id": "validation_1756583722323_6xtzwo",
+      "contentHash": "Qm4d48cfbcd0fde32da6c9191224e3773db7a186bf48fc",
+      "totalVotes": 15,
+      "trueVotes": 2,
+      "fakeVotes": 13,
+      "score": 15,
+      "status": "fake",
+      "createdAt": "2025-08-30T19:55:22.323Z",
+      "finalizedAt": "2025-08-30T19:55:22.323Z"
+    },
+    {
+      "id": "validation_1756583722326_fl0dcc",
+      "contentHash": "Qm7bc8e430e26a65c6ee80afcbd88a0effccb36ead30a2",
+      "totalVotes": 12,
+      "trueVotes": 11,
+      "fakeVotes": 1,
+      "score": 92,
+      "status": "verified",
+      "createdAt": "2025-08-30T19:55:22.326Z",
+      "finalizedAt": "2025-08-30T19:55:22.326Z"
+    },
+    {
+      "id": "validation_1756583722328_5usd08",
+      "contentHash": "Qm7aa4e466a490e5abce9e89bd35e93e11438fef0bb107",
+      "totalVotes": 8,
+      "trueVotes": 7,
+      "fakeVotes": 1,
+      "score": 88,
+      "status": "verified",
+      "createdAt": "2025-08-30T19:55:22.328Z",
+      "finalizedAt": "2025-08-30T19:55:22.328Z"
+    },
+    {
+      "id": "validation_1756583722330_b5w7v8",
+      "contentHash": "Qm3296c3bdb6ee95bfffd6cba4962326f4335e7bd3e7f4",
+      "totalVotes": 20,
+      "trueVotes": 18,
+      "fakeVotes": 2,
+      "score": 90,
+      "status": "verified",
+      "createdAt": "2025-08-30T19:55:22.330Z",
+      "finalizedAt": "2025-08-30T19:55:22.330Z"
+    },
+    {
+      "id": "validation_1756583722332_6oyjh3",
+      "contentHash": "Qm8fa93ca61c4412ae7010cfb690f84dcc98c54977c3cf",
+      "totalVotes": 14,
+      "trueVotes": 13,
+      "fakeVotes": 1,
+      "score": 93,
+      "status": "verified",
+      "createdAt": "2025-08-30T19:55:22.332Z",
+      "finalizedAt": "2025-08-30T19:55:22.332Z"
+    }
+  ],
+  "truthboard_articles": [
+    {
+      "id": "zk_article_1756583722335_p82qod",
+      "title": "Investigación: Corrupción en contratos públicos de infraestructura",
+      "content": "Una investigación revela irregularidades en la adjudicación de contratos públicos por valor de $50 millones. Los documentos filtrados muestran vínculos entre funcionarios y empresas beneficiadas.",
+      "region": "latam",
+      "category": "corruption",
+      "ipfsHash": "Qme8f10c034d8a54b64e10f9d85689c2e15e0242da560f",
+      "citreaTxHash": "0x00000000000000000000000000000000000000000000000000.cbe8275624774",
+      "donationAddress": "0x00000000000000000000000000.ec034e10e797b",
+      "anonymityScore": 92,
+      "createdAt": "2025-08-30T19:55:22.335Z",
+      "totalDonations": 0,
+      "validationCount": 0
+    },
+    {
+      "id": "zk_article_1756583722338_4hg5qq",
+      "title": "Exposé: Empresa tecnológica vende datos de usuarios sin consentimiento",
+      "content": "Documentos internos revelan que una importante empresa tecnológica ha estado vendiendo datos personales de millones de usuarios a terceros sin su consentimiento explícito.",
+      "region": "usa",
+      "category": "privacy",
+      "ipfsHash": "Qm7944127d8be1b1210f9425216b20dcc735e50e58915f",
+      "citreaTxHash": "0x00000000000000000000000000000000000000000000000000.290191a1a844b",
+      "donationAddress": "0x00000000000000000000000000.88ca01d683df2",
+      "anonymityScore": 94,
+      "createdAt": "2025-08-30T19:55:22.338Z",
+      "totalDonations": 0,
+      "validationCount": 0
+    },
+    {
+      "id": "zk_article_1756583722341_gn5rab",
+      "title": "Investigación: Red de tráfico de influencias en sector energético",
+      "content": "Fuentes internas revelan una compleja red de tráfico de influencias que ha permitido la aprobación irregular de proyectos energéticos controvertidos.",
+      "region": "europe",
+      "category": "energy",
+      "ipfsHash": "Qmb823028ed2ea7b921075ab8e154f624dfdb74c82042f",
+      "citreaTxHash": "0x00000000000000000000000000000000000000000000000000.b77421b152b1e",
+      "donationAddress": "0x00000000000000000000000000.a27d48ca60ca7",
+      "anonymityScore": 96,
+      "createdAt": "2025-08-30T19:55:22.341Z",
+      "totalDonations": 0,
+      "validationCount": 0
+    }
+  ],
+  "votes": [],
+  "staking_records": []
+}
